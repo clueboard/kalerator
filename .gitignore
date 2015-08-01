@@ -1,5 +1,12 @@
+.coverage
+.eggs
 .idea
+.kalerator
 *.json
+*.pyc
 *.scr
+activate
+coverage.xml
+htmlcov
+kalerator.egg-info
 preserve
-venv

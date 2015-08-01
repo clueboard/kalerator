@@ -37,12 +37,12 @@ class Kalerator(object):
         # The components we'll use for this board. Can be overridden after this
         # object is instaniated to tweak behavior.
         self.diode = "DIODE'1N4148'@Seeed-OPL-Diode"
-        self.switch = 'ALPSMX-1u@AlpsCherry'
         self.switches = {
             # To support other switch widths. The key is the width as reported
             # by K-L-E and the value is the footprint to use instead of
-            # self.switch.
-            '1': 'ALPSMX-1U-LED@AlpsCherry',
+            # self.switch. Any key that doesn't match a width here gets
+            # 'DEFAULT'.
+            'DEFAULT': 'ALPSMX-1U-LED@AlpsCherry',
             '2': 'ALPSMX-2U-LED@AlpsCherry',
             '2.25': 'ALPSMX-2U-LED@AlpsCherry',
             '2.5': 'ALPSMX-2U-LED@AlpsCherry',
@@ -108,11 +108,7 @@ class Kalerator(object):
                 diode_position = [switch_position[i] + self.sch_diode_offset[i] for i in range(2)]
                 device_name = str(key['width'])
 
-                if device_name in self.switches:
-                    device_name = self.switches[device_name]
-
-                else:
-                    device_name = self.switch
+                device_name = self.switches[device_name] if device_name in self.switches else self.switches['DEFAULT']
 
                 schematic_scr.append('ADD %s %s (%s %s);' % (device_name, key['label'], float_to_str(switch_position[0]), float_to_str(switch_position[1])))
                 schematic_scr.append('ADD %s D%s R90 (%s %s);' % (self.diode, key['label'], float_to_str(diode_position[0]), float_to_str(diode_position[1])))
@@ -197,12 +193,6 @@ class Kalerator(object):
         }
 
         for row in self.rawdata:
-            self.keys.append([])
-            # Each row in our raw data corresponds to a keyboard row.
-            current_attributes['coord'][0] = 1
-            current_attributes['coord'][1] += 1
-            current_attributes['offset'] = [0, 0]
-
             if isinstance(row, dict):
                 print 'Not reading keyboard properties.'
                 continue
@@ -210,6 +200,12 @@ class Kalerator(object):
             if not isinstance(row, list):
                 print "Don't know how to deal with this row:", row
                 continue
+
+            self.keys.append([])
+            # Each row in our raw data corresponds to a keyboard row.
+            current_attributes['coord'][0] = 1
+            current_attributes['coord'][1] += 1
+            current_attributes['offset'] = [0, 0]
 
             for item in row:
                 if isinstance(item, (str, unicode)):

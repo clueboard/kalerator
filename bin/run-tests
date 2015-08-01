@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# Do some sanity checking
+if ! [ -f setup.py -a -f kalerator.py ]; then
+    echo 'You must run this from the top level of kalerator!'
+    exit 1
+fi
+
+# Activate the virtualenv if it's not yet
+if [ -z "$VIRTUAL_ENV" ]; then
+    source activate
+fi
+
+# Run our tests
+py.test --cov-report html --cov-report xml --cov-report term --cov=kalerator tests
+
+# Open the coverage report in the browser if we can
+if [ "$(uname)" = "Darwin" ]; then
+    open htmlcov/index.html
+elif [ "$(uname)" = "Linux" ]; then
+    # If this doesn't work I don't want to bug the user
+    sensible-browser htmlcov/index.html 2>&1 > /dev/null || exit 0
+elif [ "$(uname | cut -f 1 -d _)" = "CYGWIN" ]; then
+    start htmlcov/index.html
+fi
