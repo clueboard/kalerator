@@ -1,0 +1,5 @@
+.idea
+*.json
+*.scr
+preserve
+venv
