@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Do some sanity checking
-if ! [ -f setup.py -a -f kalerator.py ]; then
+if ! [ -f setup.py -a -f src/kalerator/kalerator.py ]; then
     echo 'You must run this from the top level of kalerator!'
     exit 1
 fi
@@ -13,6 +13,7 @@ fi
 
 # Run our tests
 py.test --cov-report html --cov-report xml --cov-report term --cov=kalerator tests
+flake8 $(find src -name \*.py)
 
 # Open the coverage report in the browser if we can
 if [ "$(uname)" = "Darwin" ]; then

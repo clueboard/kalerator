@@ -1,4 +1,4 @@
-from kalerator import Kalerator, float_to_str, to_imperial
+from kalerator.kalerator import Kalerator, float_to_str, to_imperial
 
 
 def test_float_to_str():
