@@ -1,28 +1,39 @@
 import json
+import logging
 from os import makedirs
 from os.path import exists
 from flask import render_template
 import requests
 
 
-layout_url = 'http://www.keyboard-layout-editor.com/layouts/'
+gist_url = 'https://api.github.com/gists/%s'
+layout_url = 'http://www.keyboard-layout-editor.com/layouts/%s'
 
 
-def fetch_kle_json(layout_id=None):
+def fetch_kle_json(storage_type, layout_id):
     """Returns the parsed JSON for a keyboard-layout-editor URL.
     """
-    if exists('kle_cache/' + layout_id):
+    if exists('kle_cache/' + storage_type + layout_id):
         # We have a cached copy, return that instead
-        return json.load(open('kle_cache/' + layout_id))
+        return json.load(open('kle_cache/' + storage_type + layout_id))
 
-    keyboard = requests.get(layout_url + layout_id)
+    if storage_type == 'layouts':
+        keyboard = requests.get(layout_url % layout_id)
+        keyboard_text = keyboard.text
+        keyboard_json = keyboard.json()
+    elif storage_type == 'gists':
+        keyboard = requests.get(gist_url % layout_id).json()
+        keyboard_text = keyboard['files']['layout.kbd.json']['content']
+        keyboard_json = json.loads(keyboard_text)
+    else:
+        logging.error('Unknown storage_type: %s', storage_type)
 
     if not exists('kle_cache'):
         makedirs('kle_cache')
-    with open('kle_cache/' + layout_id, 'w') as fd:
-        fd.write(keyboard.text)  # Write this to a cache file
+    with open('kle_cache/' + storage_type + layout_id, 'w') as fd:
+        fd.write(keyboard_text)  # Write this to a cache file
 
-    return keyboard.json()
+    return keyboard_json
 
 
 def render_page(page, **args):

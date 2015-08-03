@@ -3,7 +3,6 @@ from flask import Flask
 
 app = Flask(__name__)
 
-
 # Import any views we have here
 from . import views  # noqa
 
