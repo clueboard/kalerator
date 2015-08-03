@@ -1,21 +1,28 @@
-from urlparse import urlparse
-from flask import abort, render_template, request
+import json
+from os import makedirs
+from os.path import exists
+from flask import render_template
 import requests
+
 
 layout_url = 'http://www.keyboard-layout-editor.com/layouts/'
 
-def fetch_kle_json(url):
+
+def fetch_kle_json(layout_id=None):
     """Returns the parsed JSON for a keyboard-layout-editor URL.
     """
-    url = urlparse(request.form.get('kle_url'))
+    if exists('kle_cache/' + layout_id):
+        # We have a cached copy, return that instead
+        return json.load(open('kle_cache/' + layout_id))
 
-    try:
-        layout_id = url.fragment.split('/')[2]
-        keyboard = requests.get(layout_url + layout_id)
-        return keyboard.json()
+    keyboard = requests.get(layout_url + layout_id)
 
-    except IndexError:
-        abort(400)  # They gave us an invalid URL
+    if not exists('kle_cache'):
+        makedirs('kle_cache')
+    with open('kle_cache/' + layout_id, 'w') as fd:
+        fd.write(keyboard.text)  # Write this to a cache file
+
+    return keyboard.json()
 
 
 def render_page(page, **args):

@@ -1,4 +1,5 @@
-from flask import abort, request
+from urlparse import urlparse
+from flask import abort, request, Response
 from .helpers import render_page, fetch_kle_json
 from kalerator.keyboard import Keyboard
 from .app import app
@@ -18,7 +19,47 @@ def post_index():
     if 'kle_url' not in request.form:
         abort(400)  # They aren't giving us the right form data
 
-    kle_json = fetch_kle_json(request.form.get('kle_url'))
+    url = urlparse(request.form.get('kle_url'))
+
+    try:
+        layout_id = url.fragment.split('/')[2]
+
+    except IndexError:
+        abort(400)  # They gave us an invalid URL
+
+    kle_json = fetch_kle_json(layout_id)
     k = Keyboard(kle_json)
 
-    return render_page('show_scripts', keyboard=k)
+    return render_page('show_scripts', keyboard=k, layout_id=layout_id)
+
+
+@app.route('/download/board/<kle_id>', methods=['GET'])
+def download_board_kle_id(kle_id):
+    """Download the board script.
+    """
+    kle_json = fetch_kle_json(layout_id=kle_id)
+    k = Keyboard(kle_json)
+    schematic, board = k.generate()
+
+    res = Response('\n'.join(board) + '\n',
+                   mimetype='application/octet-stream')
+    res.headers['Content-Disposition'] = \
+        'attachment; filename="%s.board.scr"' % kle_id
+
+    return res
+
+
+@app.route('/download/schematic/<kle_id>', methods=['GET'])
+def download_schematic_kle_id(kle_id):
+    """Download the schematic script.
+    """
+    kle_json = fetch_kle_json(layout_id=kle_id)
+    k = Keyboard(kle_json)
+    schematic, board = k.generate()
+
+    res = Response('\n'.join(schematic) + '\n',
+                   mimetype='application/octet-stream')
+    res.headers['Content-Disposition'] = \
+        'attachment; filename="%s.schematic.scr"' % kle_id
+
+    return res

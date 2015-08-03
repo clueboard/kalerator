@@ -18,7 +18,3 @@ def to_imperial(mm):
     :return: int
     """
     return mm / 25.4
-
-
-
-

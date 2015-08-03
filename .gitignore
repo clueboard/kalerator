@@ -9,4 +9,5 @@ activate
 coverage.xml
 htmlcov
 kalerator.egg-info
+kle_cache
 preserve
