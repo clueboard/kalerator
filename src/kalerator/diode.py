@@ -20,8 +20,6 @@ class Diode(object):
                         self.coord_mm[1] + pin_neg_offset[1])
         self.pin_pos = (self.coord_mm[0] + pin_pos_offset[0],
                         self.coord_mm[1] + pin_pos_offset[1])
-        self.sch_pin_neg = (0, 0)  # FIXME
-        self.sch_pin_pos = (0, 0)  # FIXME
 
     @property
     def board_scr(self):
