@@ -2,8 +2,6 @@
 # Special thanks to Hynek Schlawack for providing excellent documentation:
 #
 # https://hynek.me/articles/sharing-your-labor-of-love-pypi-quick-and-dirty/
-__author__ = 'skully'
-
 import os
 from setuptools import setup, find_packages, Command
 
@@ -23,7 +21,7 @@ setup(
     license='all_rights_reserved',
     author='skullY',
     author_email='skullydazed@gmail.com',
-    install_requires=[],
+    install_requires=['flask', 'flask-csrf', 'greenlet', 'gevent', 'requests'],  # FIXME: Add flask
     packages=find_packages(),
     scripts=['bin/kle'],
     include_package_data=True,

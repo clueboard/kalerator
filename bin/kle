@@ -1,37 +1,16 @@
 #!/usr/bin/env python
-from argparse import ArgumentParser
+import json
 import logging
+from argparse import ArgumentParser
 from kalerator import Kalerator
 
-__author__ = 'skully'
 
 # Setup our environment
 logging.basicConfig()
 parser = ArgumentParser(description='Turn KLE into an eagle schematic')
 parser.add_argument('file', help='JSON file to process')
 args = parser.parse_args()
-k = Kalerator(open(args.file).read())
-
-# Could change properties about the board here:
-#
-# k.diode = "DIODE-GEN-PURPOSE-1KV-1A(DO-214AC)@Seeed-OPL-Diode",
-# k.switch = 'ALPSMX-1U-LED@AlpsCherry'
-# k.switches = {
-#     # To support other switch widths
-#     '1': 'ALPSMX-1U-LED@AlpsCherry',
-#     '2': 'ALPSMX-2U-LED@AlpsCherry',
-# }
-# k.key_spacing = 19.05  # MM
-# k.trace_width = 0.5
-
-# If you use other footprints you have to change these
-# k.layout_diode_offset = (-8.75, -7)  # MM
-# k.layout_diode_neg = (-8.75, -4)     # MM
-# k.layout_diode_pos = (-8.75, -10)    # MM
-# k.sch_diode_offset = (-0.1, 0.45)  # IN
-# k.sch_net_offset = (-0.1, 0.6)     # IN
-# k.sch_col_offset = (-0.3, 0.1)     # IN
-
+k = Kalerator(json.load(open(args.file)))
 schematic_scr, board_scr = k.generate()
 
 with open(args.file + '.schematic.scr', 'w') as fd:

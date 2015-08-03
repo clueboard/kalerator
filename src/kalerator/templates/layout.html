@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+<link href="{{ url_for('static', filename='kalerator.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='favicon.ico') }}" rel="shortcut icon">
+
+<title>{% block title %}Kalerator - Turn Keyboard-Layout-Editor into a PCB{% endblock %}</title>
+
+{% block content %}
+{% endblock %}
+
+<!-- Deferred JavaScript -->
+{% block global_javascript %}
+<script src="{{ url_for('static', filename='kalerator.js') }}"></script>
+{% block javascript %}{% endblock %}
+{% endblock %}
+</html>

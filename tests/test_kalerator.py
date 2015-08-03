@@ -1,3 +1,4 @@
+from pprint import pprint
 from kalerator.kalerator import Kalerator, float_to_str, to_imperial
 
 
@@ -8,167 +9,48 @@ def test_to_imperial():
     assert to_imperial(100) == 3.937007874015748
 
 
+def test_Kalerator_iteration():
+    """Make sure we can iterate over a Kalerator instance.
+    """
+    rawdata = [
+        ['1', '2', '3'],
+        ['4', '5', '6'],
+    ]
+    k = Kalerator(rawdata)
+    keys = []
+    for key in k:
+        keys.append(key.name)
+
+    assert keys == ['1', '2', '3', '4', '5', '6']
+
+
 def test_Kalerator():
-    raw_json = """[
-        {"backcolor":"#ccc","name":"Keypad","author":"skullY","notes":"Keyboard Notes"},
-        ["NumLock", "/", "*", "-"],
-        ["7", "8", "9", {"h": 2}, "+"],
-        ["4", "5", "6"],
-        ["1", "2", "3", {"h": 1.5, "x": 2}, "Enter"],
-        [{"w": 2}, "0", ".", ["Dummy key to increase code coverage"]],
-        "Dummy row to increase code coverage"
-    ]"""
-    k = Kalerator(raw_json)
+    """Comprehensive test of the Kalerator Class.
+    """
+    rawdata = [
+        {
+            'backcolor': '#ccc',
+            'name': 'Keypad',
+            'author': 'skullY',
+            'notes': 'Keyboard Notes'
+        },
+        ['Numlock', '/', '*', '-'],
+        ['7', '8', '9', {'h': 2, 'dummy': 'To increase code coverage'}, 'Enter'],
+        ['4', '5', '6'],
+        ['1', '2', '3', {'h': 1.5, 'x': 2}, 'Enter'],
+        [{'w': 2}, '0', '', ['Dummy key to increase code coverage']],
+        'Dummy row to increase code coverage'
+    ]
+    k = Kalerator(rawdata)
     schematic, board = k.generate()
-    assert schematic == [
-        'SET WIRE_BEND 2;\n\n',
-        u'ADD ALPSMX-1U-LED@AlpsCherry NUMLOCK (0.75 -1.50);',
-        u"ADD DIODE'1N4148'@Seeed-OPL-Diode DNUMLOCK R90 (0.65 -1.05);",
-        u'VALUE DNUMLOCK 1N4148;',
-        u'ADD ALPSMX-1U-LED@AlpsCherry / (1.50 -1.50);',
-        u"ADD DIODE'1N4148'@Seeed-OPL-Diode D/ R90 (1.40 -1.05);",
-        u'VALUE D/ 1N4148;',
-        'NET ROW0 (0.65 -0.90) (1.40 -0.90);',
-        u'ADD ALPSMX-1U-LED@AlpsCherry * (2.25 -1.50);',
-        u"ADD DIODE'1N4148'@Seeed-OPL-Diode D* R90 (2.15 -1.05);",
-        u'VALUE D* 1N4148;',
-        'NET ROW0 (1.40 -0.90) (2.15 -0.90);',
-        u'ADD ALPSMX-1U-LED@AlpsCherry - (3.00 -1.50);',
-        u"ADD DIODE'1N4148'@Seeed-OPL-Diode D- R90 (2.90 -1.05);",
-        u'VALUE D- 1N4148;',
-        'NET ROW0 (2.15 -0.90) (2.90 -0.90);',
-        u'ADD ALPSMX-1U-LED@AlpsCherry 7 (0.75 -3.00);',
-        u"ADD DIODE'1N4148'@Seeed-OPL-Diode D7 R90 (0.65 -2.55);",
-        u'VALUE D7 1N4148;',
-        u'ADD ALPSMX-1U-LED@AlpsCherry 8 (1.50 -3.00);',
-        u"ADD DIODE'1N4148'@Seeed-OPL-Diode D8 R90 (1.40 -2.55);",
-        u'VALUE D8 1N4148;',
-        'NET ROW1 (0.65 -2.40) (1.40 -2.40);',
-        u'ADD ALPSMX-1U-LED@AlpsCherry 9 (2.25 -3.00);',
-        u"ADD DIODE'1N4148'@Seeed-OPL-Diode D9 R90 (2.15 -2.55);",
-        u'VALUE D9 1N4148;',
-        'NET ROW1 (1.40 -2.40) (2.15 -2.40);',
-        u'ADD ALPSMX-1U-LED@AlpsCherry + (3.00 -2.25);',
-        u"ADD DIODE'1N4148'@Seeed-OPL-Diode D+ R90 (2.90 -1.80);",
-        u'VALUE D+ 1N4148;',
-        u'ADD ALPSMX-1U-LED@AlpsCherry 4 (0.75 -4.50);',
-        u"ADD DIODE'1N4148'@Seeed-OPL-Diode D4 R90 (0.65 -4.05);",
-        u'VALUE D4 1N4148;',
-        u'ADD ALPSMX-1U-LED@AlpsCherry 5 (1.50 -4.50);',
-        u"ADD DIODE'1N4148'@Seeed-OPL-Diode D5 R90 (1.40 -4.05);",
-        u'VALUE D5 1N4148;',
-        'NET ROW2 (0.65 -3.90) (1.40 -3.90);',
-        u'ADD ALPSMX-1U-LED@AlpsCherry 6 (2.25 -4.50);',
-        u"ADD DIODE'1N4148'@Seeed-OPL-Diode D6 R90 (2.15 -4.05);",
-        u'VALUE D6 1N4148;',
-        'NET ROW2 (1.40 -3.90) (2.15 -3.90);',
-        u'ADD ALPSMX-1U-LED@AlpsCherry 1 (0.75 -6.00);',
-        u"ADD DIODE'1N4148'@Seeed-OPL-Diode D1 R90 (0.65 -5.55);",
-        u'VALUE D1 1N4148;',
-        u'ADD ALPSMX-1U-LED@AlpsCherry 2 (1.50 -6.00);',
-        u"ADD DIODE'1N4148'@Seeed-OPL-Diode D2 R90 (1.40 -5.55);",
-        u'VALUE D2 1N4148;',
-        'NET ROW3 (0.65 -5.40) (1.40 -5.40);',
-        u'ADD ALPSMX-1U-LED@AlpsCherry 3 (2.25 -6.00);',
-        u"ADD DIODE'1N4148'@Seeed-OPL-Diode D3 R90 (2.15 -5.55);",
-        u'VALUE D3 1N4148;',
-        'NET ROW3 (1.40 -5.40) (2.15 -5.40);',
-        u'ADD ALPSMX-1U-LED@AlpsCherry ENTER (4.50 -5.62);',
-        u"ADD DIODE'1N4148'@Seeed-OPL-Diode DENTER R90 (4.40 -5.17);",
-        u'VALUE DENTER 1N4148;',
-        u'ADD ALPSMX-2U-LED@AlpsCherry 0 (1.12 -7.50);',
-        u"ADD DIODE'1N4148'@Seeed-OPL-Diode D0 R90 (1.02 -7.05);",
-        u'VALUE D0 1N4148;',
-        u'ADD ALPSMX-1U-LED@AlpsCherry . (2.25 -7.50);',
-        u"ADD DIODE'1N4148'@Seeed-OPL-Diode D. R90 (2.15 -7.05);",
-        u'VALUE D. 1N4148;',
-        'NET ROW4 (1.02 -6.90) (2.15 -6.90);',
-        'NET COLUMN1 (2.70 -1.40) (2.70 -1.90);',
-        'NET COLUMN1 (2.70 -1.90) (2.70 -1.40);',
-        'NET COLUMN1 (2.70 -1.40) (2.70 -2.15);',
-        'NET COLUMN1 (2.70 -2.15) (2.70 -2.65);',
-        'NET COLUMN1 (2.70 -2.65) (1.95 -3.65);',
-        'NET COLUMN1 (1.95 -3.65) (1.95 -4.40);',
-        'NET COLUMN1 (1.95 -4.40) (1.95 -4.90);',
-        'NET COLUMN1 (1.95 -4.90) (4.20 -4.77);',
-        'NET COLUMN1 (4.20 -4.77) (4.20 -5.52);',
-        'NET COLUMN1 (4.20 -5.52) (4.20 -6.02);',
-        'NET COLUMN1 (4.20 -6.02) (1.95 -6.65);',
-        'NET COLUMN1 (1.95 -6.65) (1.95 -7.40);',
-        'NET COLUMN2 (0.45 -1.40) (0.45 -1.90);',
-        'NET COLUMN2 (0.45 -1.90) (0.45 -2.15);',
-        'NET COLUMN2 (0.45 -2.15) (0.45 -2.90);',
-        'NET COLUMN2 (0.45 -2.90) (0.45 -3.40);',
-        'NET COLUMN2 (0.45 -3.40) (0.45 -3.65);',
-        'NET COLUMN2 (0.45 -3.65) (0.45 -4.40);',
-        'NET COLUMN2 (0.45 -4.40) (0.45 -4.90);',
-        'NET COLUMN2 (0.45 -4.90) (0.45 -5.15);',
-        'NET COLUMN2 (0.45 -5.15) (0.45 -5.90);',
-        'NET COLUMN2 (0.45 -5.90) (0.45 -6.40);',
-        'NET COLUMN2 (0.45 -6.40) (0.82 -6.65);',
-        'NET COLUMN2 (0.82 -6.65) (0.82 -7.40);',
-        'NET COLUMN3 (1.95 -1.40) (1.95 -1.90);',
-        'NET COLUMN3 (1.95 -1.90) (1.95 -2.15);',
-        'NET COLUMN3 (1.95 -2.15) (1.95 -2.90);',
-        'NET COLUMN3 (1.95 -2.90) (1.95 -3.40);',
-        'NET COLUMN3 (1.95 -3.40) (1.20 -3.65);',
-        'NET COLUMN3 (1.20 -3.65) (1.20 -4.40);',
-        'NET COLUMN3 (1.20 -4.40) (1.20 -4.90);',
-        'NET COLUMN3 (1.20 -4.90) (1.95 -5.15);',
-        'NET COLUMN3 (1.95 -5.15) (1.95 -5.90);'
-    ]
-    assert board == [
-        'GRID ON;\nGRID MM 1 10;\nGRID ALT MM .1;\n\n',
-        u'ROTATE R180 NUMLOCK;', u'MOVE NUMLOCK (19.05 -19.05);',
-        u'ROTATE R270 DNUMLOCK;', u'MOVE DNUMLOCK (10.30 -26.05);',
-        'WIRE 16 0.5 (10.3 -23.05) (16.51 -24.13);', u'ROTATE R180 /;',
-        u'MOVE / (38.10 -19.05);', u'ROTATE R270 D/;',
-        u'MOVE D/ (29.35 -26.05);',
-        'WIRE 16 0.5 (29.35 -23.05) (35.56 -24.13);',
-        'WIRE 16 0.5 (10.30 -29.05) (29.35 -29.05);', u'ROTATE R180 *;',
-        u'MOVE * (57.15 -19.05);', u'ROTATE R270 D*;',
-        u'MOVE D* (48.40 -26.05);', 'WIRE 16 0.5 (48.4 -23.05) (54.61 -24.13);',
-        'WIRE 16 0.5 (29.35 -29.05) (48.40 -29.05);', u'ROTATE R180 -;',
-        u'MOVE - (76.20 -19.05);', u'ROTATE R270 D-;',
-        u'MOVE D- (67.45 -26.05);',
-        'WIRE 16 0.5 (67.45 -23.05) (73.66 -24.13);',
-        'WIRE 16 0.5 (48.40 -29.05) (67.45 -29.05);', u'ROTATE R180 7;',
-        u'MOVE 7 (19.05 -38.10);', u'ROTATE R270 D7;',
-        u'MOVE D7 (10.30 -45.10);', 'WIRE 16 0.5 (10.3 -42.1) (16.51 -43.18);',
-        u'ROTATE R180 8;', u'MOVE 8 (38.10 -38.10);', u'ROTATE R270 D8;',
-        u'MOVE D8 (29.35 -45.10);', 'WIRE 16 0.5 (29.35 -42.1) (35.56 -43.18);',
-        'WIRE 16 0.5 (10.30 -48.10) (29.35 -48.10);', u'ROTATE R180 9;',
-        u'MOVE 9 (57.15 -38.10);', u'ROTATE R270 D9;',
-        u'MOVE D9 (48.40 -45.10);', 'WIRE 16 0.5 (48.4 -42.1) (54.61 -43.18);',
-        'WIRE 16 0.5 (29.35 -48.10) (48.40 -48.10);', u'ROTATE R180 +;',
-        u'MOVE + (76.20 -28.57);', u'ROTATE R270 D+;',
-        u'MOVE D+ (67.45 -35.57);',
-        'WIRE 16 0.5 (67.45 -32.575) (73.66 -33.65);', u'ROTATE R180 4;',
-        u'MOVE 4 (19.05 -57.15);', u'ROTATE R270 D4;',
-        u'MOVE D4 (10.30 -64.15);', 'WIRE 16 0.5 (10.3 -61.15) (16.51 -62.23);',
-        u'ROTATE R180 5;', u'MOVE 5 (38.10 -57.15);', u'ROTATE R270 D5;',
-        u'MOVE D5 (29.35 -64.15);',
-        'WIRE 16 0.5 (29.35 -61.15) (35.56 -62.23);',
-        'WIRE 16 0.5 (10.30 -67.15) (29.35 -67.15);', u'ROTATE R180 6;',
-        u'MOVE 6 (57.15 -57.15);', u'ROTATE R270 D6;',
-        u'MOVE D6 (48.40 -64.15);', 'WIRE 16 0.5 (48.4 -61.15) (54.61 -62.23);',
-        'WIRE 16 0.5 (29.35 -67.15) (48.40 -67.15);', u'ROTATE R180 1;',
-        u'MOVE 1 (19.05 -76.20);', u'ROTATE R270 D1;',
-        u'MOVE D1 (10.30 -83.20);', 'WIRE 16 0.5 (10.3 -80.2) (16.51 -81.28);',
-        u'ROTATE R180 2;', u'MOVE 2 (38.10 -76.20);', u'ROTATE R270 D2;',
-        u'MOVE D2 (29.35 -83.20);', 'WIRE 16 0.5 (29.35 -80.2) (35.56 -81.28);',
-        'WIRE 16 0.5 (10.30 -86.20) (29.35 -86.20);', u'ROTATE R180 3;',
-        u'MOVE 3 (57.15 -76.20);', u'ROTATE R270 D3;',
-        u'MOVE D3 (48.40 -83.20);', 'WIRE 16 0.5 (48.4 -80.2) (54.61 -81.28);',
-        'WIRE 16 0.5 (29.35 -86.20) (48.40 -86.20);', u'ROTATE R180 ENTER;',
-        u'MOVE ENTER (114.30 -71.43);', u'ROTATE R270 DENTER;',
-        u'MOVE DENTER (105.55 -78.43);',
-        'WIRE 16 0.5 (105.55 -75.4375) (111.76 -76.51);', u'ROTATE R180 0;',
-        u'MOVE 0 (28.57 -95.25);', u'ROTATE R270 D0;',
-        u'MOVE D0 (19.82 -102.25);',
-        'WIRE 16 0.5 (19.825 -99.25) (26.03 -100.33);', u'ROTATE R180 .;',
-        u'MOVE . (57.15 -95.25);', u'ROTATE R270 D.;',
-        u'MOVE D. (48.40 -102.25);',
-        'WIRE 16 0.5 (48.4 -99.25) (54.61 -100.33);',
-        'WIRE 16 0.5 (19.82 -105.25) (48.40 -105.25);'
-    ]
+    print 'schematic: ',
+    pprint(schematic)
+    print 'board: ',
+    pprint(board)
+    assert schematic == ['GRID ON;\nGRID IN 0.1 1;\nGRID ALT IN 0.01;\nSET WIRE_BEND 2;\n\n',
+                         "ADD ALPSMX-1U-LED@AlpsCherry NUMLOCK (0.75 -1.50);\nADD DIODE'1N4148'@Seeed-OPL-Diode DNUMLOCK R90 (0.65 -1.05);\nADD ALPSMX-1U-LED@AlpsCherry / (1.50 -1.50);\nADD DIODE'1N4148'@Seeed-OPL-Diode D/ R90 (1.40 -1.05);\nNET ROW1.5 (0.65 -0.90) (1.40 -0.90);\nADD ALPSMX-1U-LED@AlpsCherry * (2.25 -1.50);\nADD DIODE'1N4148'@Seeed-OPL-Diode D* R90 (2.15 -1.05);\nNET ROW1.5 (1.40 -0.90) (2.15 -0.90);\nADD ALPSMX-1U-LED@AlpsCherry - (3.00 -1.50);\nADD DIODE'1N4148'@Seeed-OPL-Diode D- R90 (2.90 -1.05);\nNET ROW1.5 (2.15 -0.90) (2.90 -0.90);\nADD ALPSMX-1U-LED@AlpsCherry 7 (0.75 -3.00);\nADD DIODE'1N4148'@Seeed-OPL-Diode D7 R90 (0.65 -2.55);\nADD ALPSMX-1U-LED@AlpsCherry 8 (1.50 -3.00);\nADD DIODE'1N4148'@Seeed-OPL-Diode D8 R90 (1.40 -2.55);\nNET ROW3.0 (0.65 -2.40) (1.40 -2.40);\nADD ALPSMX-1U-LED@AlpsCherry 9 (2.25 -3.00);\nADD DIODE'1N4148'@Seeed-OPL-Diode D9 R90 (2.15 -2.55);\nNET ROW3.0 (1.40 -2.40) (2.15 -2.40);\nADD ALPSMX-1U-LED@AlpsCherry ENTER (3.00 -3.00);\nADD DIODE'1N4148'@Seeed-OPL-Diode DENTER R90 (2.90 -2.55);\nNET ROW3.0 (2.15 -2.40) (2.90 -2.40);\nADD ALPSMX-1U-LED@AlpsCherry 4 (0.75 -4.50);\nADD DIODE'1N4148'@Seeed-OPL-Diode D4 R90 (0.65 -4.05);\nADD ALPSMX-1U-LED@AlpsCherry 5 (1.50 -4.50);\nADD DIODE'1N4148'@Seeed-OPL-Diode D5 R90 (1.40 -4.05);\nNET ROW4.5 (0.65 -3.90) (1.40 -3.90);\nADD ALPSMX-1U-LED@AlpsCherry 6 (2.25 -4.50);\nADD DIODE'1N4148'@Seeed-OPL-Diode D6 R90 (2.15 -4.05);\nNET ROW4.5 (1.40 -3.90) (2.15 -3.90);\nADD ALPSMX-1U-LED@AlpsCherry 1 (0.75 -6.00);\nADD DIODE'1N4148'@Seeed-OPL-Diode D1 R90 (0.65 -5.55);\nADD ALPSMX-1U-LED@AlpsCherry 2 (1.50 -6.00);\nADD DIODE'1N4148'@Seeed-OPL-Diode D2 R90 (1.40 -5.55);\nNET ROW6.0 (0.65 -5.40) (1.40 -5.40);\nADD ALPSMX-1U-LED@AlpsCherry 3 (2.25 -6.00);\nADD DIODE'1N4148'@Seeed-OPL-Diode D3 R90 (2.15 -5.55);\nNET ROW6.0 (1.40 -5.40) (2.15 -5.40);\nADD ALPSMX-1U-LED@AlpsCherry ENTER_DUPE (4.50 -6.00);\nADD DIODE'1N4148'@Seeed-OPL-Diode DENTER_DUPE R90 (4.40 -5.55);\nNET ROW6.0 (2.15 -5.40) (4.40 -5.40);\nADD ALPSMX-2U-LED@AlpsCherry 0 (0.75 -7.50);\nADD DIODE'1N4148'@Seeed-OPL-Diode D0 R90 (0.65 -7.05);\nADD ALPSMX-1U-LED@AlpsCherry SPACE (2.25 -7.50);\nADD DIODE'1N4148'@Seeed-OPL-Diode DSPACE R90 (2.15 -7.05);\nNET ROW7.5 (0.65 -6.90) (2.15 -6.90);",
+                         'NET COLUMN1 (2.70 -1.40) (2.70 -1.90);\nNET COLUMN1 (2.70 -1.90) (2.70 -2.15);\nNET COLUMN1 (2.70 -2.15) (2.70 -2.90);\nNET COLUMN1 (2.70 -2.90) (2.70 -3.40);\nNET COLUMN1 (2.70 -3.40) (1.95 -3.65);\nNET COLUMN1 (1.95 -3.65) (1.95 -4.40);\nNET COLUMN1 (1.95 -4.40) (1.95 -4.90);\nNET COLUMN1 (1.95 -4.90) (4.20 -5.15);\nNET COLUMN1 (4.20 -5.15) (4.20 -5.90);\nNET COLUMN1 (4.20 -5.90) (4.20 -6.40);\nNET COLUMN1 (4.20 -6.40) (1.95 -6.65);\nNET COLUMN1 (1.95 -6.65) (1.95 -7.40);\nNET COLUMN2 (0.45 -1.40) (0.45 -1.90);\nNET COLUMN2 (0.45 -1.90) (0.45 -2.15);\nNET COLUMN2 (0.45 -2.15) (0.45 -2.90);\nNET COLUMN2 (0.45 -2.90) (0.45 -3.40);\nNET COLUMN2 (0.45 -3.40) (0.45 -3.65);\nNET COLUMN2 (0.45 -3.65) (0.45 -4.40);\nNET COLUMN2 (0.45 -4.40) (0.45 -4.90);\nNET COLUMN2 (0.45 -4.90) (0.45 -5.15);\nNET COLUMN2 (0.45 -5.15) (0.45 -5.90);\nNET COLUMN2 (0.45 -5.90) (0.45 -6.40);\nNET COLUMN2 (0.45 -6.40) (0.45 -6.65);\nNET COLUMN2 (0.45 -6.65) (0.45 -7.40);\nNET COLUMN3 (1.95 -1.40) (1.95 -1.90);\nNET COLUMN3 (1.95 -1.90) (1.95 -2.15);\nNET COLUMN3 (1.95 -2.15) (1.95 -2.90);\nNET COLUMN3 (1.95 -2.90) (1.95 -3.40);\nNET COLUMN3 (1.95 -3.40) (1.20 -3.65);\nNET COLUMN3 (1.20 -3.65) (1.20 -4.40);\nNET COLUMN3 (1.20 -4.40) (1.20 -4.90);\nNET COLUMN3 (1.20 -4.90) (1.95 -5.15);\nNET COLUMN3 (1.95 -5.15) (1.95 -5.90);',
+                         '\n\nWINDOW FIT;']
+    assert board == ['GRID ON;\nGRID MM 1 10;\nGRID ALT MM .1;\n\n',
+                     'ROTATE R180 NUMLOCK;\nMOVE NUMLOCK (19.05 -19.05);\nROTATE R90 DNUMLOCK;\nMOVE DNUMLOCK (10.10 -19.05);\nWIRE 16 0.5 (10.1 -22.05) (16.51 -24.13);\nROTATE R180 /;\nMOVE / (38.10 -19.05);\nROTATE R90 D/;\nMOVE D/ (29.15 -19.05);\nWIRE 16 0.5 (29.15 -22.05) (35.56 -24.13);\nROUTE 0.5 (10.31 -16.05) (29.34 -16.05);\nROTATE R180 *;\nMOVE * (57.15 -19.05);\nROTATE R90 D*;\nMOVE D* (48.20 -19.05);\nWIRE 16 0.5 (48.2 -22.05) (54.61 -24.13);\nROUTE 0.5 (29.36 -16.05) (48.39 -16.05);\nROTATE R180 -;\nMOVE - (76.20 -19.05);\nROTATE R90 D-;\nMOVE D- (67.25 -19.05);\nWIRE 16 0.5 (67.25 -22.05) (73.66 -24.13);\nROUTE 0.5 (48.41 -16.05) (67.44 -16.05);\nROTATE R180 7;\nMOVE 7 (19.05 -38.10);\nROTATE R90 D7;\nMOVE D7 (10.10 -38.10);\nWIRE 16 0.5 (10.1 -41.1) (16.51 -43.18);\nROTATE R180 8;\nMOVE 8 (38.10 -38.10);\nROTATE R90 D8;\nMOVE D8 (29.15 -38.10);\nWIRE 16 0.5 (29.15 -41.1) (35.56 -43.18);\nROUTE 0.5 (10.31 -35.10) (29.34 -35.10);\nROTATE R180 9;\nMOVE 9 (57.15 -38.10);\nROTATE R90 D9;\nMOVE D9 (48.20 -38.10);\nWIRE 16 0.5 (48.2 -41.1) (54.61 -43.18);\nROUTE 0.5 (29.36 -35.10) (48.39 -35.10);\nROTATE R180 ENTER;\nMOVE ENTER (76.20 -38.10);\nROTATE R90 DENTER;\nMOVE DENTER (67.25 -38.10);\nWIRE 16 0.5 (67.25 -41.1) (73.66 -43.18);\nROUTE 0.5 (48.41 -35.10) (67.44 -35.10);\nROTATE R180 4;\nMOVE 4 (19.05 -57.15);\nROTATE R90 D4;\nMOVE D4 (10.10 -57.15);\nWIRE 16 0.5 (10.1 -60.15) (16.51 -62.23);\nROTATE R180 5;\nMOVE 5 (38.10 -57.15);\nROTATE R90 D5;\nMOVE D5 (29.15 -57.15);\nWIRE 16 0.5 (29.15 -60.15) (35.56 -62.23);\nROUTE 0.5 (10.31 -54.15) (29.34 -54.15);\nROTATE R180 6;\nMOVE 6 (57.15 -57.15);\nROTATE R90 D6;\nMOVE D6 (48.20 -57.15);\nWIRE 16 0.5 (48.2 -60.15) (54.61 -62.23);\nROUTE 0.5 (29.36 -54.15) (48.39 -54.15);\nROTATE R180 1;\nMOVE 1 (19.05 -76.20);\nROTATE R90 D1;\nMOVE D1 (10.10 -76.20);\nWIRE 16 0.5 (10.1 -79.2) (16.51 -81.28);\nROTATE R180 2;\nMOVE 2 (38.10 -76.20);\nROTATE R90 D2;\nMOVE D2 (29.15 -76.20);\nWIRE 16 0.5 (29.15 -79.2) (35.56 -81.28);\nROUTE 0.5 (10.31 -73.20) (29.34 -73.20);\nROTATE R180 3;\nMOVE 3 (57.15 -76.20);\nROTATE R90 D3;\nMOVE D3 (48.20 -76.20);\nWIRE 16 0.5 (48.2 -79.2) (54.61 -81.28);\nROUTE 0.5 (29.36 -73.20) (48.39 -73.20);\nROTATE R180 ENTER_DUPE;\nMOVE ENTER_DUPE (114.30 -76.20);\nROTATE R90 DENTER_DUPE;\nMOVE DENTER_DUPE (105.35 -76.20);\nWIRE 16 0.5 (105.35 -79.2) (111.76 -81.28);\nROUTE 0.5 (48.41 -73.20) (105.54 -73.20);\nROTATE R180 0;\nMOVE 0 (28.57 -95.25);\nROTATE R90 D0;\nMOVE D0 (19.62 -95.25);\nWIRE 16 0.5 (19.625 -98.25) (26.03 -100.33);\nROTATE R180 SPACE;\nMOVE SPACE (57.15 -95.25);\nROTATE R90 DSPACE;\nMOVE DSPACE (48.20 -95.25);\nWIRE 16 0.5 (48.2 -98.25) (54.61 -100.33);\nROUTE 0.5 (19.83 -92.25) (48.39 -92.25);',
+                     '\n\nRATSNEST;\nWINDOW FIT;']

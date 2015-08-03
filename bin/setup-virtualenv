@@ -47,8 +47,9 @@ ln -s .kalerator/bin/activate || exit
 
 # Setup the environment
 source activate || exit
-pip install pytest pytest-cov flake8 || exit
+pip install pytest pytest-cov pytest-flask flake8 || exit  # FIXME: Add to setup.py somehow
 python setup.py develop || exit
+pip install flask  # FIXME: Remove this
 
 cat << EOF
 ===============================================================================
