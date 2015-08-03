@@ -44,11 +44,11 @@ def view_storage_type_layout_id(storage_type, layout_id):
                        layout_id=layout_id)
 
 
-@app.route('/download/board/<kle_id>', methods=['GET'])
-def download_board_kle_id(kle_id):
+@app.route('/download/board/<storage_type>/<kle_id>', methods=['GET'])
+def download_board_kle_id(storage_type, kle_id):
     """Download the board script.
     """
-    kle_json = fetch_kle_json(layout_id=kle_id)
+    kle_json = fetch_kle_json(storage_type=storage_type, layout_id=kle_id)
     k = Keyboard(kle_json)
 
     res = Response(k.board_scr + '\n',
@@ -59,11 +59,11 @@ def download_board_kle_id(kle_id):
     return res
 
 
-@app.route('/download/schematic/<kle_id>', methods=['GET'])
-def download_schematic_kle_id(kle_id):
+@app.route('/download/schematic/<storage_type>/<kle_id>', methods=['GET'])
+def download_schematic_kle_id(storage_type, kle_id):
     """Download the schematic script.
     """
-    kle_json = fetch_kle_json(layout_id=kle_id)
+    kle_json = fetch_kle_json(storage_type=storage_type, layout_id=kle_id)
     k = Keyboard(kle_json)
 
     res = Response(k.schematic_scr + '\n',
