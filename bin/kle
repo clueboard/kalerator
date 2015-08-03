@@ -2,7 +2,7 @@
 import json
 import logging
 from argparse import ArgumentParser
-from kalerator import Kalerator
+from kalerator.keyboard import Keyboard
 
 
 # Setup our environment
@@ -10,7 +10,7 @@ logging.basicConfig()
 parser = ArgumentParser(description='Turn KLE into an eagle schematic')
 parser.add_argument('file', help='JSON file to process')
 args = parser.parse_args()
-k = Kalerator(json.load(open(args.file)))
+k = Keyboard(json.load(open(args.file)))
 schematic_scr, board_scr = k.generate()
 
 with open(args.file + '.schematic.scr', 'w') as fd:

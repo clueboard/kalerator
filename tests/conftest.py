@@ -1,5 +1,5 @@
 import pytest
-from kalerator.web_app import app as kalerator_app
+from kalerator.web.app import app as kalerator_app
 
 @pytest.fixture
 def app():

@@ -1,222 +1,16 @@
 import logging
+from .config import diode, switches
+from .functions import float_to_str
+from .keyboard_key import KeyboardKey
 
 
-key_spacing_mm = 19.05
-key_spacing_in = 0.75
-trace_width = 0.5  # MM
-diode = {
-    'footprint': "DIODE'1N4148'@Seeed-OPL-Diode",
-    'switch_offset_board': (-8.95, 0),
-    'switch_offset_schematic': (-0.1, 0.45),
-    'switch_pin_offset': (-2.54, -5.08),
-    'pin_neg_offset': (0, 3),
-    'pin_pos_offset': (0, -3),
-}
-switches = {
-    # If the switch width doesn't match any key in this dictionary,
-    # that switch gets the 'DEFAULT' component.
-    'DEFAULT': 'ALPSMX-1U-LED@AlpsCherry',
-    2: 'ALPSMX-2U-LED@AlpsCherry',
-    2.25: 'ALPSMX-2U-LED@AlpsCherry',
-    2.5: 'ALPSMX-2U-LED@AlpsCherry',
-    2.75: 'ALPSMX-2U-LED@AlpsCherry',
-}
-
-
-def float_to_str(num):
-    """Converts a float to a string that never has more than 2 decimal places.
-
-    :param num: int
-    :return: str
-    """
-    num_str = '%f' % num
-    integer, fp = num_str.split('.', 1)
-    fp = fp[:2]
-
-    return '.'.join((integer, fp))
-
-
-def to_imperial(mm):
-    """Converts mm to in.
-
-    :param mm: int
-    :return: int
-    """
-    return mm / 25.4
-
-
-class Diode(object):
-    """Abstraction for keyboard diodes.
-    """
-    def __init__(self, name, coord_in, coord_mm, footprint,
-                 switch_offset_board, switch_offset_schematic,
-                 switch_pin_offset, pin_neg_offset, pin_pos_offset):
-        self.name = name
-        self.footprint = footprint
-        self.coord_in = (coord_in[0] + switch_offset_schematic[0],
-                         coord_in[1] + switch_offset_schematic[1])
-        self.coord_mm = (coord_mm[0] + switch_offset_board[0],
-                         coord_mm[1] + switch_offset_board[1])
-        self.switch_pin = (coord_mm[0] + switch_pin_offset[0],
-                           coord_mm[1] + switch_pin_offset[1])
-        self.pin_neg = (self.coord_mm[0] + pin_neg_offset[0],
-                        self.coord_mm[1] + pin_neg_offset[1])
-        self.pin_pos = (self.coord_mm[0] + pin_pos_offset[0],
-                        self.coord_mm[1] + pin_pos_offset[1])
-        self.sch_pin_neg = (0, 0)  # FIXME
-        self.sch_pin_pos = (0, 0)  # FIXME
-
-    @property
-    def board_scr(self):
-        """Returns the script snippets for moving the diode into place.
-        """
-        return '\n'.join((
-            'ROTATE R90 D%s;' % self.name,
-            'MOVE D%s (%s %s);' % (
-                self.name,
-                float_to_str(self.coord_mm[0]),
-                float_to_str(self.coord_mm[1])
-            ),
-            'WIRE 16 %s (%s %s) (%s %s);' % (
-                trace_width,
-                self.pin_neg[0],
-                self.pin_pos[1],
-                float_to_str(self.switch_pin[0]),
-                float_to_str(self.switch_pin[1])
-            )
-        ))
-
-    @property
-    def schematic_scr(self):
-        return 'ADD %s D%s R90 (%s %s);' % (
-            self.footprint,
-            self.name,
-            float_to_str(self.coord_in[0]),
-            float_to_str(self.coord_in[1]),
-        )
-
-
-class KeyboardKey(object):
-    """Abstraction for keyboard switches.
-    """
-    def __init__(self, name, left_key, next_key, coord, offset,
-                 footprint=switches['DEFAULT'], diode=diode):
-        self.name = name.replace(' ', '')
-        self.left_key = left_key
-        self.coord = coord[:]
-        self.footprint = footprint
-        self._board_scr = None
-        self._schematic_scr = None
-        self.width = next_key['w']
-        self.coord[1] += next_key['y']
-        self.coord[1] *= -1  # Inverted because K-L-E has an upside-down Y axis
-        self.diode = Diode(self.name, self.coord_in, self.coord_mm, **diode)
-        self.column_pin_scr = (
-            self.coord_in[0] - 0.3,
-            self.coord_in[1] + 0.1,
-        )
-        self.row_pin = (
-            self.coord_mm[0] - 8.75,
-            self.coord_mm[1] + 3,
-        )
-
-        # Figure out where our pins are
-        self.sch_pin = [self.coord_in[0] - 0.1, self.coord_in[1] + 0.6]
-
-    @property
-    def board_scr(self):
-        if not self._board_scr:
-            self._generate_board()
-
-        return '\n'.join(self._board_scr)
-
-    @property
-    def schematic_scr(self):
-        if not self._schematic_scr:
-            self._generate_schematic()
-
-        return '\n'.join(self._schematic_scr)
-
-    @property
-    def coord_in(self):
-        # Kludge: footprint is long
-        return (self.coord[0] * key_spacing_in,
-                (self.coord[1] * key_spacing_in) * 2)
-
-    @property
-    def coord_mm(self):
-        coords = [self.coord[0] * key_spacing_mm,
-                  self.coord[1] * key_spacing_mm]
-
-        if self.width > 1:
-            extra_width = (self.width - 1) * key_spacing_mm
-            offset_amount = extra_width / 2
-            coords[0] += offset_amount
-
-        return coords
-
-    def _generate_board(self):
-        """Create the script snippet for this key's piece of the board.
-        """
-        self._board_scr = [
-            'ROTATE R180 %s;' % self.name,
-            'MOVE %s (%s %s);' % (
-                self.name,
-                float_to_str(self.coord_mm[0]),
-                float_to_str(self.coord_mm[1])
-            ),
-            self.diode.board_scr
-        ]
-
-        if self.left_key:
-            if self.left_key.row_pin[1] == self.row_pin[1]:
-                self._board_scr.append('ROUTE %s (%s %s) (%s %s);' % (
-                    trace_width,
-                    float_to_str(self.left_key.row_pin[0] + 0.01),
-                    float_to_str(self.left_key.row_pin[1]),
-                    float_to_str(self.row_pin[0] - 0.01),
-                    float_to_str(self.row_pin[1])
-                ))
-
-    def _generate_schematic(self):
-        """Create the script snippet for this key's piece of the schematic.
-        """
-        self._schematic_scr = [
-            'ADD %s %s (%s %s);' % (
-                self.footprint,
-                self.name,
-                float_to_str(self.coord_in[0]),
-                float_to_str(self.coord_in[1])
-            ),
-            self.diode.schematic_scr
-        ]
-
-        if self.left_key:
-            if self.left_key.sch_pin[1] == self.sch_pin[1]:
-                self._schematic_scr.append('NET ROW%s (%s %s) (%s %s);' % (
-                    self.coord_in[1] * -1,
-                    float_to_str(self.left_key.sch_pin[0]),
-                    float_to_str(self.left_key.sch_pin[1]),
-                    float_to_str(self.sch_pin[0]),
-                    float_to_str(self.sch_pin[1])
-                ))
-
-            else:
-                logging.warn(
-                    'Attempting to create invalid ROW net: '
-                    'LastKey:%s Key:%s LastKeyPin:%s KeyPin:%s',
-                    self.left_key.name, self.name,
-                    self.left_key.sch_pin, self.sch_pin
-                )
-
-
-class Kalerator(dict):
+class Keyboard(dict):
     def __init__(self, rawdata):
+        """Representation of a keyboard.
+
+        :param rawdata: Keyboard object from keyboard-layout-editor.com
         """
-        :param rawdata:
-            JSON text from keyboard-layout-editor.com
-        """
-        super(Kalerator, self).__init__()
+        super(Keyboard, self).__init__()
         self.rawdata = rawdata
         self.rows = []
         self.max_col = 0
@@ -250,7 +44,7 @@ class Kalerator(dict):
 
     @property
     def key_scr(self):
-        """Generate and return the script snippets for keys and their rows
+        """Generate and return the script snippets for keys and their rows.
         """
         board_scr = []
         schematic_scr = []
@@ -366,7 +160,7 @@ class Kalerator(dict):
                     if key_name in self:
                         logging.warn('Duplicate key %s! Renaming to %s_DUPE!',
                                      key_name, key_name)
-                        key_name = key_name + '_DUPE'
+                        key_name += '_DUPE'
 
                     footprint = switches[next_key['w']] \
                         if next_key['w'] in switches else \

@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 
 # Import any views we have here
-from . import web_views  # noqa
+from . import views  # noqa
 
 
 # A simple "is the app up" URL

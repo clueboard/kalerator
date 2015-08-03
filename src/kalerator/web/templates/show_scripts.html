@@ -8,26 +8,26 @@
         <th>Board</th>
     </tr>
     <tr>
-        <td>Preamble</td>
+        <th>Preamble</th>
         <td><pre>{{keyboard.schematic_preamble}}</pre></td>
         <td><pre>{{keyboard.board_preamble}}</pre></td>
     </tr>
     {% for row in keyboard.rows %}
         {% for key in row %}
             <tr>
-                <td>{{key.name}}</td>
+                <th>{{key.name}}</th>
                 <td><pre>{{key.schematic_scr}}</pre></td>
                 <td><pre>{{key.board_scr}}</pre></td>
             </tr>
         {% endfor %}
     {% endfor %}
     <tr>
-        <td>Column Connections</td>
+        <th>Column Connections</th>
         <td><pre>{{keyboard.column_scr}}</pre></td>
         <td></td>
     </tr>
     <tr>
-        <td>Footer</td>
+        <th>Footer</th>
         <td><pre>{{keyboard.schematic_footer}}</pre></td>
         <td><pre>{{keyboard.board_footer}}</pre></td>
     </tr>

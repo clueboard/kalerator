@@ -1,4 +1,4 @@
-from kalerator.helpers import render_page
+from kalerator.web.helpers import render_page
 
 
 def test_render_page(app):

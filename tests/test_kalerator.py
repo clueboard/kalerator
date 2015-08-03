@@ -1,22 +1,15 @@
 from pprint import pprint
-from kalerator.kalerator import Kalerator, float_to_str, to_imperial
+from kalerator.keyboard import Keyboard
 
 
-def test_float_to_str():
-    assert float_to_str(2.0000000000000000005) == '2.00'
-
-def test_to_imperial():
-    assert to_imperial(100) == 3.937007874015748
-
-
-def test_Kalerator_iteration():
-    """Make sure we can iterate over a Kalerator instance.
+def test_Keyboard_iteration():
+    """Make sure we can iterate over a Keyboard instance.
     """
     rawdata = [
         ['1', '2', '3'],
         ['4', '5', '6'],
     ]
-    k = Kalerator(rawdata)
+    k = Keyboard(rawdata)
     keys = []
     for key in k:
         keys.append(key.name)
@@ -24,8 +17,8 @@ def test_Kalerator_iteration():
     assert keys == ['1', '2', '3', '4', '5', '6']
 
 
-def test_Kalerator():
-    """Comprehensive test of the Kalerator Class.
+def test_Keyboard():
+    """Comprehensive test of the Keyboard Class.
     """
     rawdata = [
         {
@@ -41,7 +34,7 @@ def test_Kalerator():
         [{'w': 2}, '0', '', ['Dummy key to increase code coverage']],
         'Dummy row to increase code coverage'
     ]
-    k = Kalerator(rawdata)
+    k = Keyboard(rawdata)
     schematic, board = k.generate()
     print 'schematic: ',
     pprint(schematic)

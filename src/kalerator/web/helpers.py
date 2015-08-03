@@ -2,6 +2,7 @@ from urlparse import urlparse
 from flask import abort, render_template, request
 import requests
 
+layout_url = 'http://www.keyboard-layout-editor.com/layouts/'
 
 def fetch_kle_json(url):
     """Returns the parsed JSON for a keyboard-layout-editor URL.
@@ -10,12 +11,11 @@ def fetch_kle_json(url):
 
     try:
         layout_id = url.fragment.split('/')[2]
+        keyboard = requests.get(layout_url + layout_id)
+        return keyboard.json()
+
     except IndexError:
         abort(400)  # They gave us an invalid URL
-
-    keyboard = requests.get('http://www.keyboard-layout-editor.com/layouts/' +
-                            layout_id)
-    return keyboard.json()
 
 
 def render_page(page, **args):

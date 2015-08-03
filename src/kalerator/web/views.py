@@ -1,7 +1,7 @@
 from flask import abort, request
 from .helpers import render_page, fetch_kle_json
-from kalerator import Kalerator
-from .web_app import app
+from kalerator.keyboard import Keyboard
+from .app import app
 
 
 @app.route('/', methods=['GET'])
@@ -19,6 +19,6 @@ def post_index():
         abort(400)  # They aren't giving us the right form data
 
     kle_json = fetch_kle_json(request.form.get('kle_url'))
-    k = Kalerator(kle_json)
+    k = Keyboard(kle_json)
 
     return render_page('show_scripts', keyboard=k)
