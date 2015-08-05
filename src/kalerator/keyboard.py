@@ -1,3 +1,4 @@
+# coding=UTF-8
 from copy import deepcopy
 import logging
 from .config import diode, switches

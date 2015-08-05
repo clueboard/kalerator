@@ -1,3 +1,4 @@
+# coding=UTF-8
 from kalerator.config import diode
 from kalerator.diode import Diode
 

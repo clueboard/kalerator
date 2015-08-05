@@ -1,3 +1,4 @@
+# coding=UTF-8
 from urlparse import urlparse
 from flask import abort, request, Response, url_for
 from .helpers import render_page, fetch_kle_json

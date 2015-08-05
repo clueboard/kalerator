@@ -1,3 +1,4 @@
+# coding=UTF-8
 from .config import trace_width
 from .keyboard import float_to_str
 

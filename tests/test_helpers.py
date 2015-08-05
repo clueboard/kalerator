@@ -1,3 +1,4 @@
+# coding=UTF-8
 from kalerator.web.helpers import render_page
 
 

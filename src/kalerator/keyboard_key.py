@@ -1,3 +1,4 @@
+# coding=UTF-8
 from .config import diode, key_spacing_in, key_spacing_mm, switches, \
     trace_width
 from .diode import Diode

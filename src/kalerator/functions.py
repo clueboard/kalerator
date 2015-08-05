@@ -1,3 +1,4 @@
+# coding=UTF-8
 def float_to_str(num):
     """Converts a float to a string that never has more than 2 decimal places.
 

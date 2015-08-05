@@ -1,3 +1,4 @@
+# coding=UTF-8
 from kalerator.functions import float_to_str, to_imperial
 
 

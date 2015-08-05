@@ -1,3 +1,4 @@
+# coding=UTF-8
 from kalerator.keyboard import Keyboard
 
 

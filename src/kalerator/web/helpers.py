@@ -1,12 +1,15 @@
+# coding=UTF-8
 import json
 import logging
-from time import time, strftime, gmtime
-from os import makedirs, stat
+from codecs import open as copen
+from time import time, strftime, localtime
+from os import makedirs, remove, stat
 from os.path import exists
 from flask import render_template
 import requests
 
 
+cache_dir = 'kle_cache'
 gist_url = 'https://api.github.com/gists/%s'
 layout_url = 'http://www.keyboard-layout-editor.com/layouts/%s'
 
@@ -14,23 +17,31 @@ layout_url = 'http://www.keyboard-layout-editor.com/layouts/%s'
 def fetch_kle_json(storage_type, layout_id):
     """Returns the parsed JSON for a keyboard-layout-editor URL.
     """
-    cache_file = 'kle_cache/' + storage_type + layout_id
+    cache_file = cache_dir + '/' + storage_type + '-' + layout_id
     headers = {}
 
     if exists(cache_file):
         # We have a cached copy
-        file_date = stat(cache_file).st_mtime
+        file_stat = stat(cache_file)
+        file_date = file_stat.st_mtime
+        file_size = file_stat.st_size
         file_age = time() - file_date
 
-        if file_age < 60:
+        if file_size == 0:
+            # Invalid cache
+            logging.warning('Removing zero-length cache file %s', cache_file)
+            remove(cache_file)
+
+        elif file_age < 60:
             logging.warning('Cache file %s is %ss old, skipping HTTP check.',
                           cache_file, file_age)
-            return json.load(open(cache_file))
+            return json.load(copen(cache_file, encoding='UTF-8'))
 
-        headers['If-Modified-Since'] = strftime('%a, %d %b %Y %H:%M:%S GMT',
-                                                gmtime(file_date))
-        logging.warning('Adding If-Modified-Since: %s to headers.',
-                      headers['If-Modified-Since'])
+        else:
+            headers['If-Modified-Since'] = strftime('%a, %d %b %Y %H:%M:%S %Z',
+                                                    localtime(file_date))
+            logging.warning('Adding If-Modified-Since: %s to headers.',
+                          headers['If-Modified-Since'])
 
     if storage_type == 'layouts':
         keyboard = requests.get(layout_url % layout_id, headers=headers)
@@ -38,7 +49,7 @@ def fetch_kle_json(storage_type, layout_id):
         if keyboard.status_code == 304:
             logging.debug("Source for %s hasn't changed, loading from disk.",
                           cache_file)
-            return json.load(open(cache_file))
+            return json.load(copen(cache_file, encoding='UTF-8'))
 
         keyboard_text = keyboard.text
         keyboard_json = keyboard.json()
@@ -49,7 +60,7 @@ def fetch_kle_json(storage_type, layout_id):
         if keyboard.status_code == 304:
             logging.debug("Source for %s hasn't changed, loading from disk.",
                           cache_file)
-            return json.load(open(cache_file))
+            return json.load(copen(cache_file, encoding='UTF-8'))
 
         keyboard = keyboard.json()
 
@@ -60,10 +71,10 @@ def fetch_kle_json(storage_type, layout_id):
     else:
         logging.error('Unknown storage_type: %s', storage_type)
 
-    if not exists('kle_cache'):
-        makedirs('kle_cache')
+    if not exists(cache_dir):
+        makedirs(cache_dir)
 
-    with open('kle_cache/' + storage_type + layout_id, 'w') as fd:
+    with copen(cache_file, 'w', encoding='UTF-8') as fd:
         fd.write(keyboard_text)  # Write this to a cache file
 
     return keyboard_json
