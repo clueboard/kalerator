@@ -1,12 +1,12 @@
 # coding=UTF-8
 import json
 import logging
+import requests
 from codecs import open as copen
+from flask import render_template
 from time import time, strftime, localtime
 from os import makedirs, remove, stat
 from os.path import exists
-from flask import render_template
-import requests
 
 
 cache_dir = 'kle_cache'

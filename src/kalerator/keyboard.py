@@ -70,6 +70,78 @@ class Keyboard(dict):
 
         return '\n'.join(self._schematic_scr)
 
+    def translate_label(self, label):
+        """Returns the EAGLE friendly label for this key.
+        """
+        key_name = label.split('\n', 1)[0].upper()
+
+        if key_name == '':
+            logging.warn("Blank key name! Assuming it's SPACE.")
+            key_name = 'SPACE'
+        elif key_name == u'\u2190':
+            key_name = 'LEFT'
+        elif key_name == u'\u2191':
+            key_name = 'UP'
+        elif key_name == u'\u2192':
+            key_name = 'RIGHT'
+        elif key_name == u'\u2193':
+            key_name = 'DOWN'
+        elif key_name in u'~\xac':
+            key_name = 'GRAVE'
+        elif key_name == '!':
+            key_name = '1'
+        elif key_name == '@':
+            key_name = '2'
+        elif key_name in u'#\xa3':
+            key_name = '3'
+        elif key_name == '$':
+            key_name = '4'
+        elif key_name == '%':
+            key_name = '5'
+        elif key_name == '^':
+            key_name = '6'
+        elif key_name == '&':
+            key_name = '7'
+        elif key_name == '*':
+            key_name = '8'
+        elif key_name == '(':
+            key_name = '9'
+        elif key_name == ')':
+            key_name = '0'
+        elif key_name == '_':
+            key_name = 'DASH'
+        elif key_name == '+':
+            key_name = 'EQUAL'
+        elif key_name == '{':
+            key_name = 'LBRACKET'
+        elif key_name == '}':
+            key_name = 'RBRACKET'
+        elif key_name == '|':
+            key_name = 'BACKSLASH'
+        elif key_name == ':':
+            key_name = 'SEMICOLON'
+        elif key_name == '"':
+            key_name = 'QUOTE'
+        elif key_name == '<':
+            key_name = 'COMMA'
+        elif key_name == '>':
+            key_name = 'PERIOD'
+        elif key_name == '?':
+            key_name = 'SLASH'
+        elif key_name == '/':
+            key_name = 'KP_SLASH'
+        elif key_name == '-':
+            key_name = 'KP_DASH'
+        elif key_name == '.':
+            key_name = 'KP_DEL'
+
+        if key_name in self:
+            logging.warn('Duplicate key %s! Renaming to %s_DUPE!',
+                         key_name, key_name)
+            key_name += '_DUPE'
+
+        return key_name
+
     @property
     def key_board_scr(self):
         """Generate and return the board script snippets for keys.
@@ -186,7 +258,7 @@ class Keyboard(dict):
                 if isinstance(item, (str, unicode)):
                     col_num += 1
                     # Prototype our key
-                    key_name = item.split('\n', 1)[0].upper()
+                    key_name = self.translate_label(item)
 
                     if key_name == '':
                         logging.warn("Blank key name! Assuming it's SPACE.")
