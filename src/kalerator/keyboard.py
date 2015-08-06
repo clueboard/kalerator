@@ -52,7 +52,8 @@ class Keyboard(dict):
         self.rows = []
         self.max_col = 0
         self._board_scr = []
-        self._column_scr = []
+        self._column_board_scr = []
+        self._column_schematic_scr = []
         self._key_board_scr = []
         self._key_schematic_scr = []
         self._schematic_scr = []
@@ -90,7 +91,7 @@ class Keyboard(dict):
         """
         if not self._board_scr:
             self._board_scr = [self.board_preamble, self.key_board_scr,
-                               self.board_footer]
+                               self.column_board_scr, self.board_footer]
 
         return '\n'.join(self._board_scr)
 
@@ -100,7 +101,8 @@ class Keyboard(dict):
         """
         if not self._schematic_scr:
             self._schematic_scr = [self.schematic_preamble,
-                                   self.key_schematic_scr, self.column_scr,
+                                   self.key_schematic_scr,
+                                   self.column_schematic_scr,
                                    self.schematic_footer]
 
         return '\n'.join(self._schematic_scr)
@@ -141,76 +143,116 @@ class Keyboard(dict):
         return '\n'.join(self._key_schematic_scr)
 
     @property
+    def column_schematic_scr(self):
+        if not self._column_schematic_scr:
+            self.column_scr()
+
+        return self._column_schematic_scr
+
+    @property
+    def column_board_scr(self):
+        if not self._column_board_scr:
+            self.column_scr()
+
+        return self._column_board_scr
+
     def column_scr(self):
         """Generate and return the script snippets for connecting columns.
         """
-        if not self._column_scr:
-            rows = deepcopy(self.rows)  # Don't break self.__iter__
-            row_positions = range(1, self.max_col + 1)
-            columns = {}
+        rows = deepcopy(self.rows)  # Don't break self.__iter__
+        row_positions = range(1, self.max_col + 1)
+        schematic_columns = {}
+        board_columns = {}
 
-            # The use of for here is misleading. It would be better to think
-            # of this as a loop that runs exactly the same number of times
-            # as the length of self.rows.
-            for column in range(1, self.max_col + 1):
-                key = last_key = None
-                row_position = None
+        # The use of for here is misleading. It would be better to think
+        # of this as a loop that runs exactly the same number of times
+        # as the length of self.rows.
+        for column in range(1, self.max_col + 1):
+            key = last_key = None
+            row_position = None
 
-                for row in rows:
-                    try:
-                        # Grab columns from alternating sides so that we don't
-                        # end up with weird traces for some keys
-                        if column % 2 == 0:
-                            key = row.pop(0)
-                            if not row_position:
-                                row_position = row_positions.pop(0)
-                        else:
-                            key = row.pop(-1)
-                            if not row_position:
-                                row_position = row_positions.pop(-1)
-                    except IndexError:
-                        last_key = key
-                        continue
-
-                    if last_key:
-                        top_pin_offset = last_key.column_pin_scr[1] - 0.5
-                        bot_pin_offset = key.column_pin_scr[1] + 0.75
-
-                        if row_position not in columns:
-                            columns[row_position] = []
-
-                        # We use 3 NET's here to ensure that the column won't
-                        # intersect another switch and cause confusion.
-                        columns[row_position].append(
-                            'NET COLUMN%%(column)s (%s %s) (%s %s);\n' % (
-                                float_to_str(last_key.column_pin_scr[0]),
-                                float_to_str(last_key.column_pin_scr[1]),
-                                float_to_str(last_key.column_pin_scr[0]),
-                                float_to_str(top_pin_offset)
-                            ) + 'NET COLUMN%%(column)s (%s %s) (%s %s);\n' % (
-                                float_to_str(last_key.column_pin_scr[0]),
-                                float_to_str(top_pin_offset),
-                                float_to_str(key.column_pin_scr[0]),
-                                float_to_str(bot_pin_offset)
-                            ) + 'NET COLUMN%%(column)s (%s %s) (%s %s);\n' % (
-                                float_to_str(key.column_pin_scr[0]),
-                                float_to_str(bot_pin_offset),
-                                float_to_str(key.column_pin_scr[0]),
-                                float_to_str(key.column_pin_scr[1])
-                            )
-                        )
-
+            for row in rows:
+                try:
+                    # Grab columns from alternating sides so that we don't
+                    # end up with weird traces for some keys
+                    if column % 2 == 0:
+                        key = row.pop(0)
+                        if not row_position:
+                            row_position = row_positions.pop(0)
+                    else:
+                        key = row.pop(-1)
+                        if not row_position:
+                            row_position = row_positions.pop(-1)
+                except IndexError:
                     last_key = key
+                    continue
 
-            # Iterate once more so that we can number the columns from
-            # left to right rather than alternating from the outside in
-            for column in sorted(columns):
-                self._column_scr.append('\n'.join(columns[column]) %
-                                        {'column': column})
+                if row_position not in schematic_columns:
+                    schematic_columns[row_position] = []
+                    board_columns[row_position] = []
 
-            self._column_scr = '\n'.join(self.column_scr)
+                if last_key:
+                    # Output the NET connecting the key above with this key
+                    top_pin_offset = last_key.column_pin_scr[1] - 0.5
+                    bot_pin_offset = key.column_pin_scr[1] + 0.75
 
-        return self._column_scr
+                    # We use 3 NET's here to ensure that the column won't
+                    # intersect another switch and cause confusion.
+                    schematic_columns[row_position].append(
+                        'NET COLUMN%%(column)s (%s %s) (%s %s);\n' % (
+                            float_to_str(last_key.column_pin_scr[0]),
+                            float_to_str(last_key.column_pin_scr[1]),
+                            float_to_str(last_key.column_pin_scr[0]),
+                            float_to_str(top_pin_offset)
+                        ) + 'NET COLUMN%%(column)s (%s %s) (%s %s);\n' % (
+                            float_to_str(last_key.column_pin_scr[0]),
+                            float_to_str(top_pin_offset),
+                            float_to_str(key.column_pin_scr[0]),
+                            float_to_str(bot_pin_offset)
+                        ) + 'NET COLUMN%%(column)s (%s %s) (%s %s);' % (
+                            float_to_str(key.column_pin_scr[0]),
+                            float_to_str(bot_pin_offset),
+                            float_to_str(key.column_pin_scr[0]),
+                            float_to_str(key.column_pin_scr[1])
+                        )
+                    )
+
+                else:
+                    # Top of the COLUMN, put a header here
+                    schematic_columns[row_position].append(
+                        'ADD HEADER-1P-KEYBOARD@Headers '
+                        'PCOLUMN%%(column)s R180 (%s %s);\n' % (
+                            float_to_str(key.column_pin_scr[0]),
+                            float_to_str(key.column_pin_scr[1])
+                        ) + 'JUNCTION (%s %s);\n' % (
+                            float_to_str(key.column_pin_scr[0]),
+                            float_to_str(key.column_pin_scr[1])
+                        ) + 'NAME COLUMN%%(column)s (%s %s);' % (
+                            float_to_str(key.column_pin_scr[0]),
+                            float_to_str(key.column_pin_scr[1])
+                        )
+                    )
+                    board_columns[row_position].append(
+                        'MOVE PCOLUMN%%(column)s (%s %s);' % (
+                            float_to_str(key.column_header_pin[0]),
+                            float_to_str(key.column_header_pin[1])
+                        )
+                    )
+
+                last_key = key
+
+        # Iterate once more so that we can number the columns from
+        # left to right rather than alternating from the outside in
+        schematic = []
+        board = []
+        for column in sorted(schematic_columns):
+            schematic.append('\n'.join(schematic_columns[column]) %
+                                              {'column': column})
+            board.append('\n'.join(board_columns[column]) %
+                                    {'column': column})
+
+        self._column_schematic_scr = '\n'.join(schematic)
+        self._column_board_scr = '\n'.join(board)
 
     def generate(self):
         """Generate and return the Schematic and Board scripts.
@@ -221,7 +263,6 @@ class Keyboard(dict):
         """Parse the KLE JSON into a data structure we can iterate over.
         """
         # Initialize the state engine we use to parse K-L-E's data format
-        last_key = None
         next_key = self.default_next_key.copy()
         col_num = 0
         current_attrs = {
@@ -238,6 +279,7 @@ class Keyboard(dict):
                 logging.warn("Don't know how to deal with this row: %s", row)
                 continue
 
+            last_key = None
             self.rows.append([])
 
             # Modify our state engine for the new row

@@ -3,7 +3,6 @@ from .config import diode, key_spacing_in, key_spacing_mm, switches, \
     trace_width
 from .diode import Diode
 from .functions import float_to_str
-import logging
 
 
 class KeyboardKey(object):
@@ -28,6 +27,14 @@ class KeyboardKey(object):
         self.row_pin = (
             self.coord_mm[0] - 8.75,
             self.coord_mm[1] + 3,
+        )
+        self.column_header_pin = (
+            self.coord_mm[0] + 3.35,
+            self.coord_mm[1] - 9.55,
+        )
+        self.row_header_pin = (
+            self.coord_mm[0] - 8.93,
+            self.coord_mm[1] + 4.88,
         )
 
         # Figure out where our pins are
@@ -88,6 +95,15 @@ class KeyboardKey(object):
                     float_to_str(self.row_pin[1])
                 ))
 
+        else:
+            self._board_scr.append(
+                'MOVE PROW%s (%s %s);' % (
+                    self.coord[1] * -1,
+                    self.row_header_pin[0],
+                    self.row_header_pin[1]
+                )
+            )
+
     def _generate_schematic(self):
         """Create the script snippet for this key's piece of the schematic.
         """
@@ -104,17 +120,25 @@ class KeyboardKey(object):
         if self.left_key:
             if self.left_key.sch_pin[1] == self.sch_pin[1]:
                 self._schematic_scr.append('NET ROW%s (%s %s) (%s %s);' % (
-                    self.coord_in[1] * -1,
+                    self.coord[1] * -1,
                     float_to_str(self.left_key.sch_pin[0]),
                     float_to_str(self.left_key.sch_pin[1]),
                     float_to_str(self.sch_pin[0]),
                     float_to_str(self.sch_pin[1])
                 ))
 
-            else:
-                logging.warn(
-                    'Attempting to create invalid ROW net: '
-                    'LastKey:%s Key:%s LastKeyPin:%s KeyPin:%s',
-                    self.left_key.name, self.name,
-                    self.left_key.sch_pin, self.sch_pin
+        else:
+            self._schematic_scr.append(
+                'ADD HEADER-1P-KEYBOARD@Headers PROW%s R90 (%s %s);\n' % (
+                    self.coord[1] * -1,
+                    self.sch_pin[0],
+                    self.sch_pin[1]
+                ) + 'JUNCTION (%s %s);\n' % (
+                    self.sch_pin[0],
+                    self.sch_pin[1]
+                ) + 'NAME ROW%s (%s %s);\n' % (
+                    self.coord[1] * -1,
+                    self.sch_pin[0],
+                    self.sch_pin[1]
                 )
+            )

@@ -31,8 +31,8 @@ def test_KeyboardKey():
     assert kk.column_pin_scr == (0.45, -1.4)
     assert kk.row_pin == (10.3, -16.05)
     assert kk.sch_pin == [0.65, -0.9]
-    assert kk.board_scr == 'ROTATE R180 TEST;\nMOVE TEST (19.05 -19.05);\nROTATE R90 DTEST;\nMOVE DTEST (10.10 -19.05);\nWIRE 16 0.5 (10.1 -22.05) (16.51 -24.13);'
-    assert kk.schematic_scr == "ADD ALPSMX-1U-LED@AlpsCherry TEST (0.75 -1.50);\nADD DIODE'1N4148'@Seeed-OPL-Diode DTEST R90 (0.65 -1.05);"
+    assert kk.board_scr == 'ROTATE R180 TEST;\nMOVE TEST (19.05 -19.05);\nROTATE R90 DTEST;\nMOVE DTEST (10.10 -19.05);\nWIRE 16 0.5 (10.1 -22.05) (16.51 -24.13);\nMOVE PROW1 (10.12 -14.17);'
+    assert kk.schematic_scr == "ADD ALPSMX-1U-LED@AlpsCherry TEST (0.75 -1.50);\nADD DIODE'1N4148'@Seeed-OPL-Diode DTEST R90 (0.65 -1.05);\nADD HEADER-1P-KEYBOARD@Headers PROW1 R90 (0.65 -0.9);\nJUNCTION (0.65 -0.9);\nNAME ROW1 (0.65 -0.9);\n"
 
 
 def test_KeyboardKey_left_key():
@@ -65,4 +65,4 @@ def test_KeyboardKey_left_key():
     assert kk.row_pin == (29.35, -16.05)
     assert kk.sch_pin == [1.4, -0.9]
     assert kk.board_scr == 'ROTATE R180 TEST_RIGHT;\nMOVE TEST_RIGHT (38.10 -19.05);\nROTATE R90 DTEST_RIGHT;\nMOVE DTEST_RIGHT (29.15 -19.05);\nWIRE 16 0.5 (29.15 -22.05) (35.56 -24.13);\nROUTE 0.5 (10.31 -16.05) (29.34 -16.05);'
-    assert kk.schematic_scr == "ADD ALPSMX-1U-LED@AlpsCherry TEST_RIGHT (1.50 -1.50);\nADD DIODE'1N4148'@Seeed-OPL-Diode DTEST_RIGHT R90 (1.40 -1.05);\nNET ROW1.5 (0.65 -0.90) (1.40 -0.90);"
+    assert kk.schematic_scr == "ADD ALPSMX-1U-LED@AlpsCherry TEST_RIGHT (1.50 -1.50);\nADD DIODE'1N4148'@Seeed-OPL-Diode DTEST_RIGHT R90 (1.40 -1.05);\nNET ROW1 (0.65 -0.90) (1.40 -0.90);"
