@@ -1,4 +1,6 @@
 # coding=UTF-8
+cache_time = 15  # Seconds
+default_eagle_ver = 'paid'
 key_spacing_mm = 19.05
 key_spacing_in = 0.75
 trace_width = 0.5  # MM

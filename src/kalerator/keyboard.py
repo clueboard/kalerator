@@ -2,7 +2,7 @@
 from copy import deepcopy
 import logging
 from .config import diode, switches
-from .functions import float_to_str
+from .functions import float_to_str, translate_board_coords
 from .keyboard_key import KeyboardKey
 
 
@@ -42,13 +42,14 @@ key_translation = {
 
 
 class Keyboard(dict):
-    def __init__(self, rawdata):
+    def __init__(self, rawdata, eagle_version):
         """Representation of a keyboard.
 
         :param rawdata: Keyboard object from keyboard-layout-editor.com
         """
         super(Keyboard, self).__init__()
         self.rawdata = rawdata
+        self.eagle_version = eagle_version
         self.rows = []
         self.max_col = 0
         self._board_scr = []
@@ -90,22 +91,24 @@ class Keyboard(dict):
         """Return the board script snippets for the whole board.
         """
         if not self._board_scr:
-            self._board_scr = [self.board_preamble, self.key_board_scr,
-                               self.column_board_scr, self.board_footer]
+            self._board_scr = '\n'.join((self.board_preamble,
+                                         self.key_board_scr,
+                                         self.column_board_scr,
+                                         self.board_footer))
 
-        return '\n'.join(self._board_scr)
+        return self._board_scr
 
     @property
     def schematic_scr(self):
         """Return the schematic script snippets for the whole board.
         """
         if not self._schematic_scr:
-            self._schematic_scr = [self.schematic_preamble,
-                                   self.key_schematic_scr,
-                                   self.column_schematic_scr,
-                                   self.schematic_footer]
+            self._schematic_scr = '\n'.join((self.schematic_preamble,
+                                            self.key_schematic_scr,
+                                            self.column_schematic_scr,
+                                            self.schematic_footer))
 
-        return '\n'.join(self._schematic_scr)
+        return self._schematic_scr
 
     def translate_label(self, label):
         """Returns the EAGLE friendly label for this key.
@@ -127,10 +130,9 @@ class Keyboard(dict):
         """Generate and return the board script snippets for keys.
         """
         if not self._key_board_scr:
-            for key in self:
-                self._key_board_scr.append(key.board_scr)
+            self._key_board_scr = '\n'.join([key.board_scr for key in self])
 
-        return '\n'.join(self._key_board_scr)
+        return self._key_board_scr
 
     @property
     def key_schematic_scr(self):
@@ -247,12 +249,16 @@ class Keyboard(dict):
         board = []
         for column in sorted(schematic_columns):
             schematic.append('\n'.join(schematic_columns[column]) %
-                                              {'column': column})
+                             {'column': column})
             board.append('\n'.join(board_columns[column]) %
-                                    {'column': column})
+                         {'column': column})
 
         self._column_schematic_scr = '\n'.join(schematic)
         self._column_board_scr = '\n'.join(board)
+
+        if self.eagle_version == 'free':
+            self._column_board_scr = \
+                translate_board_coords(self._column_board_scr)
 
     def generate(self):
         """Generate and return the Schematic and Board scripts.
@@ -299,8 +305,8 @@ class Keyboard(dict):
                     self.rows[-1].append(None)  # Ugly hack
                     self[key_name] = self.rows[-1][-1] = \
                         KeyboardKey(key_name, last_key, next_key,
-                                    footprint=footprint, diode=diode,
-                                    **current_attrs)
+                                    self.eagle_version, footprint=footprint,
+                                    diode=diode, **current_attrs)
 
                     # Prepare for the next key we'll have to process
                     current_attrs['coord'][0] += next_key['w']

@@ -2,6 +2,7 @@
 from urlparse import urlparse
 from flask import abort, request, Response, url_for
 from .helpers import render_page, fetch_kle_json
+from kalerator import config
 from kalerator.keyboard import Keyboard
 from .app import app
 from werkzeug.utils import redirect
@@ -21,6 +22,7 @@ def post_index():
     if 'kle_url' not in request.form:
         abort(400)  # They aren't giving us the right form data
 
+    eagle_version = request.form.get('eagle_version', config.default_eagle_ver)
     url = urlparse(request.form.get('kle_url'))
 
     try:
@@ -30,27 +32,29 @@ def post_index():
         abort(400)  # They gave us an invalid URL
 
     return redirect(url_for('view_storage_type_layout_id',
-                            storage_type=storage_type,
-                            layout_id=layout_id))
+                    storage_type=storage_type, layout_id=layout_id) +
+                    '?eagle_version=' + eagle_version)
 
 
 @app.route('/view/<storage_type>/<layout_id>', methods=['GET'])
 def view_storage_type_layout_id(storage_type, layout_id):
     """View a layout.
     """
+    eagle_version = request.args.get('eagle_version', config.default_eagle_ver)
     kle_json = fetch_kle_json(storage_type, layout_id)
-    k = Keyboard(kle_json)
+    k = Keyboard(kle_json, eagle_version)
 
     return render_page('show_scripts', keyboard=k, storage_type=storage_type,
-                       layout_id=layout_id)
+                       layout_id=layout_id, eagle_version=eagle_version)
 
 
 @app.route('/download/board/<storage_type>/<kle_id>', methods=['GET'])
 def download_board_kle_id(storage_type, kle_id):
     """Download the board script.
     """
+    eagle_version = request.args.get('eagle_version', config.default_eagle_ver)
     kle_json = fetch_kle_json(storage_type=storage_type, layout_id=kle_id)
-    k = Keyboard(kle_json)
+    k = Keyboard(kle_json, eagle_version)
 
     res = Response(k.board_scr + '\n',
                    mimetype='application/octet-stream')
@@ -64,8 +68,9 @@ def download_board_kle_id(storage_type, kle_id):
 def download_schematic_kle_id(storage_type, kle_id):
     """Download the schematic script.
     """
+    eagle_version = request.args.get('eagle_version', config.default_eagle_ver)
     kle_json = fetch_kle_json(storage_type=storage_type, layout_id=kle_id)
-    k = Keyboard(kle_json)
+    k = Keyboard(kle_json, eagle_version)
 
     res = Response(k.schematic_scr + '\n',
                    mimetype='application/octet-stream')

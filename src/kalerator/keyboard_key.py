@@ -2,17 +2,18 @@
 from .config import diode, key_spacing_in, key_spacing_mm, switches, \
     trace_width
 from .diode import Diode
-from .functions import float_to_str
+from .functions import float_to_str, translate_board_coords
 
 
 class KeyboardKey(object):
     """Abstraction for keyboard switches.
     """
-    def __init__(self, name, left_key, next_key, coord, offset,
+    def __init__(self, name, left_key, next_key, eagle_version, coord, offset,
                  footprint=switches['DEFAULT'], diode=diode):
         self.name = name.replace(' ', '')
         self.left_key = left_key
         self.coord = coord[:]
+        self.eagle_version = eagle_version
         self.footprint = footprint
         self._board_scr = None
         self._schematic_scr = None
@@ -45,7 +46,7 @@ class KeyboardKey(object):
         if not self._board_scr:
             self._generate_board()
 
-        return '\n'.join(self._board_scr)
+        return self._board_scr
 
     @property
     def schematic_scr(self):
@@ -75,7 +76,7 @@ class KeyboardKey(object):
     def _generate_board(self):
         """Create the script snippet for this key's piece of the board.
         """
-        self._board_scr = [
+        board_scr = [
             'ROTATE R180 %s;' % self.name,
             'MOVE %s (%s %s);' % (
                 self.name,
@@ -87,7 +88,7 @@ class KeyboardKey(object):
 
         if self.left_key:
             if self.left_key.row_pin[1] == self.row_pin[1]:
-                self._board_scr.append('ROUTE %s (%s %s) (%s %s);' % (
+                board_scr.append('ROUTE %s (%s %s) (%s %s);' % (
                     trace_width,
                     float_to_str(self.left_key.row_pin[0] + 0.01),
                     float_to_str(self.left_key.row_pin[1]),
@@ -96,13 +97,18 @@ class KeyboardKey(object):
                 ))
 
         else:
-            self._board_scr.append(
+            board_scr.append(
                 'MOVE PROW%s (%s %s);' % (
                     self.coord[1] * -1,
                     self.row_header_pin[0],
                     self.row_header_pin[1]
                 )
             )
+
+        self._board_scr = '\n'.join(board_scr)
+
+        if self.eagle_version == 'free':
+            self._board_scr = translate_board_coords(self._board_scr)
 
     def _generate_schematic(self):
         """Create the script snippet for this key's piece of the schematic.

@@ -1,6 +1,7 @@
 # coding=UTF-8
 import json
 import logging
+from kalerator import config
 import requests
 from codecs import open as copen
 from flask import render_template
@@ -32,7 +33,7 @@ def fetch_kle_json(storage_type, layout_id):
             logging.warning('Removing zero-length cache file %s', cache_file)
             remove(cache_file)
 
-        elif file_age < 60:
+        elif file_age < config.cache_time:
             logging.warning('Cache file %s is %ss old, skipping HTTP check.',
                             cache_file, file_age)
             return json.load(copen(cache_file, encoding='UTF-8'))
