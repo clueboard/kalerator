@@ -52,6 +52,10 @@ class Keyboard(dict):
         self.eagle_version = eagle_version
         self.rows = []
         self.max_col = 0
+        self.backcolor = None
+        self.name = None
+        self.author = None
+        self.notes = None
         self._board_scr = []
         self._column_board_scr = []
         self._column_schematic_scr = []
@@ -278,7 +282,18 @@ class Keyboard(dict):
 
         for row in self.rawdata:
             if isinstance(row, dict):
-                logging.warn('Not reading keyboard properties: %s' % row)
+                if 'backcolor' in row:
+                    self.backcolor = row['backcolor']
+
+                if 'name' in row:
+                    self.name = row['name']
+
+                if 'author' in row:
+                    self.author = row['author']
+
+                if 'notes' in row:
+                    self.notes = row['notes']
+
                 continue
 
             if not isinstance(row, list):

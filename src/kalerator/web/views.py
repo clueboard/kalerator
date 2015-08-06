@@ -55,11 +55,12 @@ def download_board_kle_id(storage_type, kle_id):
     eagle_version = request.args.get('eagle_version', config.default_eagle_ver)
     kle_json = fetch_kle_json(storage_type=storage_type, layout_id=kle_id)
     k = Keyboard(kle_json, eagle_version)
+    name = k.name if k.name else kle_id
 
     res = Response(k.board_scr + '\n',
                    mimetype='application/octet-stream')
     res.headers['Content-Disposition'] = \
-        'attachment; filename="%s.board.scr"' % kle_id
+        'attachment; filename="%s.board.scr"' % name
 
     return res
 
@@ -71,10 +72,11 @@ def download_schematic_kle_id(storage_type, kle_id):
     eagle_version = request.args.get('eagle_version', config.default_eagle_ver)
     kle_json = fetch_kle_json(storage_type=storage_type, layout_id=kle_id)
     k = Keyboard(kle_json, eagle_version)
+    name = k.name if k.name else kle_id
 
     res = Response(k.schematic_scr + '\n',
                    mimetype='application/octet-stream')
     res.headers['Content-Disposition'] = \
-        'attachment; filename="%s.schematic.scr"' % kle_id
+        'attachment; filename="%s.schematic.scr"' % name
 
     return res
