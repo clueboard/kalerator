@@ -6,6 +6,41 @@ from .functions import float_to_str
 from .keyboard_key import KeyboardKey
 
 
+key_translation = {
+    '': 'SPACE',
+    u'\u2190': 'LEFT',
+    u'\u2191': 'UP',
+    u'\u2192': 'RIGHT',
+    u'\u2193': 'DOWN',
+    u'~': 'GRAVE',
+    u'\xac': 'GRAVE',
+    '!': '1',
+    '@': '2',
+    u'#': '3',
+    u'\xa3': '3',
+    '$': '4',
+    '%': '5',
+    '^': '6',
+    '&': '7',
+    '*': '8',
+    '(': '9',
+    ')': '0',
+    '_': 'DASH',
+    '+': 'EQUAL',
+    '{': 'LBRACKET',
+    '}': 'RBRACKET',
+    '|': 'BACKSLASH',
+    ':': 'SEMICOLON',
+    '"': 'QUOTE',
+    '<': 'COMMA',
+    '>': 'PERIOD',
+    '?': 'SLASH',
+    '/': 'KP_SLASH',
+    '-': 'KP_DASH',
+    '.': 'KP_DEL',
+}
+
+
 class Keyboard(dict):
     def __init__(self, rawdata):
         """Representation of a keyboard.
@@ -75,65 +110,8 @@ class Keyboard(dict):
         """
         key_name = label.split('\n', 1)[0].upper()
 
-        if key_name == '':
-            logging.warn("Blank key name! Assuming it's SPACE.")
-            key_name = 'SPACE'
-        elif key_name == u'\u2190':
-            key_name = 'LEFT'
-        elif key_name == u'\u2191':
-            key_name = 'UP'
-        elif key_name == u'\u2192':
-            key_name = 'RIGHT'
-        elif key_name == u'\u2193':
-            key_name = 'DOWN'
-        elif key_name in u'~\xac':
-            key_name = 'GRAVE'
-        elif key_name == '!':
-            key_name = '1'
-        elif key_name == '@':
-            key_name = '2'
-        elif key_name in u'#\xa3':
-            key_name = '3'
-        elif key_name == '$':
-            key_name = '4'
-        elif key_name == '%':
-            key_name = '5'
-        elif key_name == '^':
-            key_name = '6'
-        elif key_name == '&':
-            key_name = '7'
-        elif key_name == '*':
-            key_name = '8'
-        elif key_name == '(':
-            key_name = '9'
-        elif key_name == ')':
-            key_name = '0'
-        elif key_name == '_':
-            key_name = 'DASH'
-        elif key_name == '+':
-            key_name = 'EQUAL'
-        elif key_name == '{':
-            key_name = 'LBRACKET'
-        elif key_name == '}':
-            key_name = 'RBRACKET'
-        elif key_name == '|':
-            key_name = 'BACKSLASH'
-        elif key_name == ':':
-            key_name = 'SEMICOLON'
-        elif key_name == '"':
-            key_name = 'QUOTE'
-        elif key_name == '<':
-            key_name = 'COMMA'
-        elif key_name == '>':
-            key_name = 'PERIOD'
-        elif key_name == '?':
-            key_name = 'SLASH'
-        elif key_name == '/':
-            key_name = 'KP_SLASH'
-        elif key_name == '-':
-            key_name = 'KP_DASH'
-        elif key_name == '.':
-            key_name = 'KP_DEL'
+        if key_name in key_translation:
+            key_name = key_translation[key_name]
 
         if key_name in self:
             logging.warn('Duplicate key %s! Renaming to %s_DUPE!',
@@ -154,7 +132,7 @@ class Keyboard(dict):
 
     @property
     def key_schematic_scr(self):
-        """Generate and return the script snippets for all keys.
+        """Generate and return the schematic script snippets for all keys.
         """
         if not self._key_schematic_scr:
             for key in self:
@@ -168,7 +146,7 @@ class Keyboard(dict):
         """
         if not self._column_scr:
             rows = deepcopy(self.rows)  # Don't break self.__iter__
-            for column in range(1, self.max_col):
+            for column in range(1, self.max_col + 1):
                 key = last_key = None
 
                 for row in rows:
