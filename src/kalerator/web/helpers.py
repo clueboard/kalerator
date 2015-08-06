@@ -34,14 +34,14 @@ def fetch_kle_json(storage_type, layout_id):
 
         elif file_age < 60:
             logging.warning('Cache file %s is %ss old, skipping HTTP check.',
-                          cache_file, file_age)
+                            cache_file, file_age)
             return json.load(copen(cache_file, encoding='UTF-8'))
 
         else:
             headers['If-Modified-Since'] = strftime('%a, %d %b %Y %H:%M:%S %Z',
                                                     localtime(file_date))
             logging.warning('Adding If-Modified-Since: %s to headers.',
-                          headers['If-Modified-Since'])
+                            headers['If-Modified-Since'])
 
     if storage_type == 'layouts':
         keyboard = requests.get(layout_url % layout_id, headers=headers)

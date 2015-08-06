@@ -146,8 +146,15 @@ class Keyboard(dict):
         """
         if not self._column_scr:
             rows = deepcopy(self.rows)  # Don't break self.__iter__
+            row_positions = range(1, self.max_col + 1)
+            columns = {}
+
+            # The use of for here is misleading. It would be better to think
+            # of this as a loop that runs exactly the same number of times
+            # as the length of self.rows.
             for column in range(1, self.max_col + 1):
                 key = last_key = None
+                row_position = None
 
                 for row in rows:
                     try:
@@ -155,8 +162,12 @@ class Keyboard(dict):
                         # end up with weird traces for some keys
                         if column % 2 == 0:
                             key = row.pop(0)
+                            if not row_position:
+                                row_position = row_positions.pop(0)
                         else:
                             key = row.pop(-1)
+                            if not row_position:
+                                row_position = row_positions.pop(-1)
                     except IndexError:
                         last_key = key
                         continue
@@ -165,29 +176,23 @@ class Keyboard(dict):
                         top_pin_offset = last_key.column_pin_scr[1] - 0.5
                         bot_pin_offset = key.column_pin_scr[1] + 0.75
 
+                        if row_position not in columns:
+                            columns[row_position] = []
+
                         # We use 3 NET's here to ensure that the column won't
                         # intersect another switch and cause confusion.
-                        self._column_scr.append(
-                            'NET COLUMN%s (%s %s) (%s %s);' % (
-                                column,
+                        columns[row_position].append(
+                            'NET COLUMN%%(column)s (%s %s) (%s %s);\n' % (
                                 float_to_str(last_key.column_pin_scr[0]),
                                 float_to_str(last_key.column_pin_scr[1]),
                                 float_to_str(last_key.column_pin_scr[0]),
                                 float_to_str(top_pin_offset)
-                            )
-                        )
-                        self._column_scr.append(
-                            'NET COLUMN%s (%s %s) (%s %s);' % (
-                                column,
+                            ) + 'NET COLUMN%%(column)s (%s %s) (%s %s);\n' % (
                                 float_to_str(last_key.column_pin_scr[0]),
                                 float_to_str(top_pin_offset),
                                 float_to_str(key.column_pin_scr[0]),
                                 float_to_str(bot_pin_offset)
-                            )
-                        )
-                        self._column_scr.append(
-                            'NET COLUMN%s (%s %s) (%s %s);' % (
-                                column,
+                            ) + 'NET COLUMN%%(column)s (%s %s) (%s %s);\n' % (
                                 float_to_str(key.column_pin_scr[0]),
                                 float_to_str(bot_pin_offset),
                                 float_to_str(key.column_pin_scr[0]),
@@ -197,7 +202,15 @@ class Keyboard(dict):
 
                     last_key = key
 
-        return '\n'.join(self._column_scr)
+            # Iterate once more so that we can number the columns from
+            # left to right rather than alternating from the outside in
+            for column in sorted(columns):
+                self._column_scr.append('\n'.join(columns[column]) %
+                                        {'column': column})
+
+            self._column_scr = '\n'.join(self.column_scr)
+
+        return self._column_scr
 
     def generate(self):
         """Generate and return the Schematic and Board scripts.
@@ -235,22 +248,12 @@ class Keyboard(dict):
             for item in row:
                 if isinstance(item, (str, unicode)):
                     col_num += 1
+
                     # Prototype our key
                     key_name = self.translate_label(item)
-
-                    if key_name == '':
-                        logging.warn("Blank key name! Assuming it's SPACE.")
-                        key_name = 'SPACE'
-
-                    if key_name in self:
-                        logging.warn('Duplicate key %s! Renaming to %s_DUPE!',
-                                     key_name, key_name)
-                        key_name += '_DUPE'
-
                     footprint = switches[next_key['w']] \
                         if next_key['w'] in switches else \
                         switches['DEFAULT']
-
                     self.rows[-1].append(None)  # Ugly hack
                     self[key_name] = self.rows[-1][-1] = \
                         KeyboardKey(key_name, last_key, next_key,
