@@ -4,6 +4,7 @@ import logging
 from .config import diode, switches
 from .functions import float_to_str, translate_board_coords
 from .keyboard_key import KeyboardKey
+from kle2xy import KLE2xy
 
 
 key_translation = {
@@ -48,7 +49,7 @@ class Keyboard(dict):
         :param rawdata: Keyboard object from keyboard-layout-editor.com
         """
         super(Keyboard, self).__init__()
-        self.rawdata = rawdata
+        self.layout = KLE2xy(rawdata[1:-1])
         self.eagle_version = eagle_version
         self.rows = []
         self.max_col = 0
@@ -88,7 +89,7 @@ class Keyboard(dict):
         """
         for row in self.rows:
             for key in row:
-                yield key
+                yield self[key]
 
     @property
     def board_scr(self):
@@ -118,14 +119,23 @@ class Keyboard(dict):
         """Returns the EAGLE friendly label for this key.
         """
         key_name = label.split('\n', 1)[0].upper()
+        if label == '*':
+            key_name = 'KP_ASTERISK'
 
         if key_name in key_translation:
             key_name = key_translation[key_name]
 
         if key_name in self:
-            logging.warn('Duplicate key %s! Renaming to %s_DUPE!',
-                         key_name, key_name)
-            key_name += '_DUPE'
+            i = 2
+            if key_name.isdigit():
+                key_name = new_key_name = 'KP_' + key_name
+            else:
+                new_key_name = key_name + str(i)
+            while new_key_name in self:
+                new_key_name = key_name + str(i)
+                i += 1
+            logging.warn('Duplicate key %s! Renaming to %s!', key_name, new_key_name)
+            key_name = new_key_name
 
         return key_name
 
@@ -273,79 +283,26 @@ class Keyboard(dict):
         """Parse the KLE JSON into a data structure we can iterate over.
         """
         # Initialize the state engine we use to parse K-L-E's data format
+        last_key = None
         next_key = self.default_next_key.copy()
         col_num = 0
-        current_attrs = {
-            'coord': [0, 0],
-            'offset': [0, 0],
-        }
 
-        for row in self.rawdata:
-            if isinstance(row, dict):
-                if 'backcolor' in row:
-                    self.backcolor = row['backcolor']
-
-                if 'name' in row:
-                    self.name = row['name']
-
-                if 'author' in row:
-                    self.author = row['author']
-
-                if 'notes' in row:
-                    self.notes = row['notes']
-
-                continue
-
-            if not isinstance(row, list):
-                logging.warn("Don't know how to deal with this row: %s", row)
-                continue
-
-            last_key = None
+        for row in self.layout:
             self.rows.append([])
+            for key in row:
+                key_name = self.translate_label(key['name'])
+                footprint = switches[key['width']] \
+                    if key['width'] in switches else \
+                    switches['DEFAULT']
+                coord = [key['column'], key['row']]
+                last_key = self[key_name] = KeyboardKey(key_name, last_key, next_key,
+                                self.eagle_version, footprint=footprint,
+                                diode=diode, coord=coord, offset=(0,0))
+                self.rows[-1].append(key_name)
+                next_key = self.default_next_key.copy()
 
-            # Modify our state engine for the new row
-            current_attrs['coord'][0] = 1
-            current_attrs['coord'][1] += 1
-            current_attrs['offset'] = [0, 0]
+                # Store this column count if it's the highest we've seen
+                if col_num > self.max_col:
+                    self.max_col = col_num
 
-            for item in row:
-                if isinstance(item, (str, unicode)):
-                    col_num += 1
-
-                    # Prototype our key
-                    key_name = self.translate_label(item)
-                    footprint = switches[next_key['w']] \
-                        if next_key['w'] in switches else \
-                        switches['DEFAULT']
-                    self.rows[-1].append(None)  # Ugly hack
-                    self[key_name] = self.rows[-1][-1] = \
-                        KeyboardKey(key_name, last_key, next_key,
-                                    self.eagle_version, footprint=footprint,
-                                    diode=diode, **current_attrs)
-
-                    # Prepare for the next key we'll have to process
-                    current_attrs['coord'][0] += next_key['w']
-                    last_key = self[key_name]
-                    next_key = self.default_next_key.copy()
-
-                elif isinstance(item, dict):
-                    # Change attributes about the next key
-                    for attribute, value in item.items():
-                        if attribute == 'x':
-                            current_attrs['coord'][0] += value
-
-                        elif attribute in ['y', 'w', 'h', 'l', 'n']:
-                            next_key[attribute] = value
-
-                        else:
-                            logging.debug('Unknown next_key attribute: '
-                                          '%s (Value: %s)', attribute, value)
-
-                else:
-                    logging.error('Unknown key or object: %s', item)
-
-            # Store this column count if it's the highest we've seen
-            if col_num > self.max_col:
-                self.max_col = col_num
-
-            col_num = 0
+                col_num = 0

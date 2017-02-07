@@ -18,14 +18,12 @@
         <td><pre>{{keyboard.schematic_preamble}}</pre></td>
         <td><pre>{{keyboard.board_preamble}}</pre></td>
     </tr>
-    {% for row in keyboard.rows %}
-        {% for key in row %}
-            <tr>
-                <th>{{key.name}}</th>
-                <td><pre>{{key.schematic_scr}}</pre></td>
-                <td><pre>{{key.board_scr}}</pre></td>
-            </tr>
-        {% endfor %}
+    {% for key in keyboard %}
+					<tr>
+							<th>{{key.name}}</th>
+							<td><pre>{{key.schematic_scr}}</pre></td>
+							<td><pre>{{key.board_scr}}</pre></td>
+					</tr>
     {% endfor %}
     <tr>
         <th>Column Connections</th>

@@ -21,7 +21,7 @@ setup(
     license='all_rights_reserved',
     author='skullY',
     author_email='skullydazed@gmail.com',
-    install_requires=['flask', 'flask-csrf', 'greenlet', 'gevent', 'requests'],  # FIXME: Add flask
+    install_requires=['flask', 'flask-csrf', 'greenlet', 'gevent', 'requests', 'kle2xy'], 
     packages=find_packages(),
     scripts=['bin/kle'],
     include_package_data=True,

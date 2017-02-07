@@ -1,4 +1,6 @@
 # coding=UTF-8
+from decimal import Decimal
+
 from .config import diode, key_spacing_in, key_spacing_mm, switches, \
     trace_width
 from .diode import Diode
@@ -22,24 +24,24 @@ class KeyboardKey(object):
         self.coord[1] *= -1  # Inverted because K-L-E has an upside-down Y axis
         self.diode = Diode(self.name, self.coord_in, self.coord_mm, **diode)
         self.column_pin_scr = (
-            self.coord_in[0] - 0.3,
-            self.coord_in[1] + 0.1,
+            self.coord_in[0] - Decimal('0.3'),
+            self.coord_in[1] + Decimal('0.1'),
         )
         self.row_pin = (
-            self.coord_mm[0] - 8.75,
-            self.coord_mm[1] + 3,
+            self.coord_mm[0] - Decimal('8.75'),
+            self.coord_mm[1] + Decimal('3'),
         )
         self.column_header_pin = (
-            self.coord_mm[0] + 3.35,
-            self.coord_mm[1] - 9.55,
+            self.coord_mm[0] + Decimal('3.35'),
+            self.coord_mm[1] - Decimal('9.55'),
         )
         self.row_header_pin = (
-            self.coord_mm[0] - 8.93,
-            self.coord_mm[1] + 4.88,
+            self.coord_mm[0] - Decimal('8.93'),
+            self.coord_mm[1] + Decimal('4.88'),
         )
 
         # Figure out where our pins are
-        self.sch_pin = [self.coord_in[0] - 0.1, self.coord_in[1] + 0.6]
+        self.sch_pin = [self.coord_in[0] - Decimal('0.1'), self.coord_in[1] + Decimal('0.6')]
 
     @property
     def board_scr(self):
@@ -90,9 +92,9 @@ class KeyboardKey(object):
             if self.left_key.row_pin[1] == self.row_pin[1]:
                 board_scr.append('ROUTE %s (%s %s) (%s %s);' % (
                     trace_width,
-                    float_to_str(self.left_key.row_pin[0] + 0.01),
+                    float_to_str(self.left_key.row_pin[0] + Decimal('0.01')),
                     float_to_str(self.left_key.row_pin[1]),
-                    float_to_str(self.row_pin[0] - 0.01),
+                    float_to_str(self.row_pin[0] - Decimal('0.01')),
                     float_to_str(self.row_pin[1])
                 ))
 

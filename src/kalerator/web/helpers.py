@@ -1,5 +1,4 @@
 # coding=UTF-8
-import json
 import logging
 from kalerator import config
 import requests
@@ -16,7 +15,7 @@ layout_url = 'http://www.keyboard-layout-editor.com/layouts/%s'
 
 
 def fetch_kle_json(storage_type, layout_id):
-    """Returns the parsed JSON for a keyboard-layout-editor URL.
+    """Returns the JSON for a keyboard-layout-editor URL.
     """
     cache_file = cache_dir + '/' + storage_type + '-' + layout_id
     headers = {}
@@ -36,7 +35,7 @@ def fetch_kle_json(storage_type, layout_id):
         elif file_age < config.cache_time:
             logging.warning('Cache file %s is %ss old, skipping HTTP check.',
                             cache_file, file_age)
-            return json.load(copen(cache_file, encoding='UTF-8'))
+            return copen(cache_file, encoding='UTF-8').read()
 
         else:
             headers['If-Modified-Since'] = strftime('%a, %d %b %Y %H:%M:%S %Z',
@@ -50,10 +49,9 @@ def fetch_kle_json(storage_type, layout_id):
         if keyboard.status_code == 304:
             logging.debug("Source for %s hasn't changed, loading from disk.",
                           cache_file)
-            return json.load(copen(cache_file, encoding='UTF-8'))
+            return copen(cache_file, encoding='UTF-8').read()
 
         keyboard_text = keyboard.text
-        keyboard_json = keyboard.json()
 
     elif storage_type == 'gists':
         keyboard = requests.get(gist_url % layout_id, headers=headers)
@@ -61,13 +59,12 @@ def fetch_kle_json(storage_type, layout_id):
         if keyboard.status_code == 304:
             logging.debug("Source for %s hasn't changed, loading from disk.",
                           cache_file)
-            return json.load(copen(cache_file, encoding='UTF-8'))
+            return copen(cache_file, encoding='UTF-8').read()
 
         keyboard = keyboard.json()
 
         for file in keyboard['files']:
             keyboard_text = keyboard['files'][file]['content']
-            keyboard_json = json.loads(keyboard_text)
             break  # First file wins, hope there's only one...
     else:
         logging.error('Unknown storage_type: %s', storage_type)
@@ -78,7 +75,7 @@ def fetch_kle_json(storage_type, layout_id):
     with copen(cache_file, 'w', encoding='UTF-8') as fd:
         fd.write(keyboard_text)  # Write this to a cache file
 
-    return keyboard_json
+    return keyboard_text
 
 
 def render_page(page, **args):
