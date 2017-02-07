@@ -236,28 +236,6 @@ class Keyboard(dict):
                         )
                     )
 
-                else:
-                    # Top of the COLUMN, put a header here
-                    schematic_columns[row_position].append(
-                        'ADD HEADER-1P-KEYBOARD@Headers '
-                        'PCOLUMN%%(column)s R180 (%s %s);\n' % (
-                            float_to_str(key.column_pin_scr[0]),
-                            float_to_str(key.column_pin_scr[1])
-                        ) + 'JUNCTION (%s %s);\n' % (
-                            float_to_str(key.column_pin_scr[0]),
-                            float_to_str(key.column_pin_scr[1])
-                        ) + 'NAME COLUMN%%(column)s (%s %s);' % (
-                            float_to_str(key.column_pin_scr[0]),
-                            float_to_str(key.column_pin_scr[1])
-                        )
-                    )
-                    board_columns[row_position].append(
-                        'MOVE PCOLUMN%%(column)s (%s %s);' % (
-                            float_to_str(key.column_header_pin[0]),
-                            float_to_str(key.column_header_pin[1])
-                        )
-                    )
-
                 last_key = key
 
         # Iterate once more so that we can number the columns from
@@ -286,17 +264,24 @@ class Keyboard(dict):
         """Returns the name of the switch footprint for the current key.
         """
         if key_width in [2, 2.25, 2.75]:
-            return self._switch_footprint + '-2U'
+            footprint = self._switch_footprint + '-2U'
         elif key_width in [4]:
-            return self._switch_footprint + '-2U'
+            footprint = self._switch_footprint + '-2U'
         elif key_width in [6.25]:
-            return self._switch_footprint + '-6.25U'
+            footprint = self._switch_footprint + '-6.25U'
         elif key_width in [6.5]:
-            return self._switch_footprint + '-6.5U'
+            footprint = self._switch_footprint + '-6.5U'
         elif key_width in [7]:
-            return self._switch_footprint + '-7U'
+            footprint = self._switch_footprint + '-7U'
         else:
-            return self._switch_footprint + '-1U'
+            footprint = self._switch_footprint + '-1U'
+
+        if '-LED-' in footprint:
+            footprint += '-LED'
+        elif '-RGBLED-' in footprint:
+            footprint += '-RGB'
+
+        return footprint
 
     def parse_json(self):
         """Parse the KLE JSON into a data structure we can iterate over.
@@ -315,7 +300,7 @@ class Keyboard(dict):
                 coord_mm = [key['x'], key['y']]
                 last_key = self[key_name] = KeyboardKey(key_name, last_key, next_key,
                                 self.eagle_version, switch_footprint=footprint,
-                                diode=self.diode_type, coord=coord, coord_mm=coord_mm, offset=(0,0))
+                                diode=self.diode_type, coord=coord, coord_mm=coord_mm, smd_led=self.smd_led)
                 self.rows[-1].append(key_name)
                 next_key = self.default_next_key.copy()
 

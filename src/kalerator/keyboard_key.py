@@ -9,7 +9,7 @@ from .functions import float_to_str, translate_board_coords
 class KeyboardKey(object):
     """Abstraction for keyboard switches.
     """
-    def __init__(self, name, left_key, next_key, eagle_version, coord, coord_mm, offset, switch_footprint, diode):
+    def __init__(self, name, left_key, next_key, eagle_version, coord, coord_mm, switch_footprint, diode, smd_led):
         self.name = name.replace(' ', '')
         self.left_key = left_key
         self.coord = coord[:]
@@ -20,6 +20,7 @@ class KeyboardKey(object):
         self._schematic_scr = None
         self.width = next_key['w']
         self.diode = Diode(self.name, self.coord_in, self.coord_mm, **diode)
+        self.smd_led = smd_led
         self.column_pin_scr = (
             self.coord_in[0] - Decimal('0.3'),
             self.coord_in[1] + Decimal('0.1'),
@@ -36,6 +37,10 @@ class KeyboardKey(object):
             self.coord_mm[0] - Decimal('8.93'),
             self.coord_mm[1] + Decimal('4.88'),
         )
+        self.resistor_sch_offset = (0, Decimal('-0.3'))
+        self.resistor_brd_offset = (Decimal('5'), Decimal('8.02'))
+        self.smd_led_sch_offset = (0, Decimal('-0.6'))
+        self.smd_led_brd_offset = (0, Decimal('8.02'))
 
         # Figure out where our pins are
         self.sch_pin = [self.coord_in[0] - Decimal('0.1'), self.coord_in[1] + Decimal('0.7')]
@@ -83,6 +88,17 @@ class KeyboardKey(object):
             ),
             self.diode.board_scr
         ]
+        if self.smd_led:
+            board_scr.append('MOVE R%s (%s %s);' % (
+                self.name,
+                float_to_str(self.coord_mm[0] + self.resistor_brd_offset[0]),
+                float_to_str(self.coord_mm[1] + self.resistor_brd_offset[1]),
+            ))
+            board_scr.append('MOVE L%s (%s %s);' % (
+                self.name,
+                float_to_str(self.coord_mm[0] + self.smd_led_brd_offset[0]),
+                float_to_str(self.coord_mm[1] + self.smd_led_brd_offset[1]),
+            ))
 
         self._board_scr = '\n'.join(board_scr)
 
@@ -101,6 +117,18 @@ class KeyboardKey(object):
             ),
             self.diode.schematic_scr
         ]
+
+        if self.smd_led:
+            self._schematic_scr.append("ADD RESISTOR-0805 'R%s' (%s %s);" % (
+                self.name,
+                float_to_str(self.coord_in[0] + self.resistor_sch_offset[0]),
+                float_to_str(self.coord_in[1] + self.resistor_sch_offset[1]),
+            ))
+            self._schematic_scr.append('ADD LED@Controller L%s (%s %s);' % (
+                self.name,
+                float_to_str(self.coord_in[0] + self.smd_led_sch_offset[0]),
+                float_to_str(self.coord_in[1] + self.smd_led_sch_offset[1]),
+            ))
 
         if self.left_key:
             if self.left_key.sch_pin[1] == self.sch_pin[1]:
