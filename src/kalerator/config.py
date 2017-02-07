@@ -7,12 +7,22 @@ key_spacing_mm = Decimal('19.05')
 key_spacing_in = Decimal('0.75')
 trace_width = Decimal('0.5')  # MM
 diode = {
-    'footprint': "DIODE'1N4148'@Seeed-OPL-Diode",
-    'switch_offset_board': (Decimal('-8.95'), Decimal('0')),
-    'switch_offset_schematic': (Decimal('-0.1'), Decimal('0.45')),
-    'switch_pin_offset': (Decimal('-2.54'), Decimal('-5.08')),
-    'pin_neg_offset': (Decimal('0'), Decimal('3')),
-    'pin_pos_offset': (Decimal('0'), Decimal('-3')),
+    'tht': {
+        'footprint': "DIODE-DO-35",
+        'switch_offset_board': (Decimal('-8.95'), Decimal('0')),
+        'switch_offset_schematic': (Decimal('-0.1'), Decimal('0.5')),
+        'switch_pin_offset': (Decimal('-2.54'), Decimal('-5.08')),
+        'pin_neg_offset': (Decimal('0'), Decimal('3')),
+        'pin_pos_offset': (Decimal('0'), Decimal('-3')),
+    },
+    'smd': {
+        'footprint': "DIODE-SOD-123",
+        'switch_offset_board': (Decimal('-8.89'), Decimal('-6.16')),
+        'switch_offset_schematic': (Decimal('-0.1'), Decimal('0.5')),
+        'switch_pin_offset': (Decimal('-2.54'), Decimal('-5.08')),
+        'pin_neg_offset': (Decimal('0'), Decimal('3')),
+        'pin_pos_offset': (Decimal('0'), Decimal('-3')),
+    }
 }
 switches = {
     # If the switch width doesn't match any key in this dictionary,

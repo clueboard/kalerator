@@ -43,7 +43,7 @@ key_translation = {
 
 
 class Keyboard(dict):
-    def __init__(self, rawdata, eagle_version):
+    def __init__(self, rawdata, eagle_version, switch_footprint, diode_type, smd_led):
         """Representation of a keyboard.
 
         :param rawdata: Keyboard object from keyboard-layout-editor.com
@@ -51,6 +51,9 @@ class Keyboard(dict):
         super(Keyboard, self).__init__()
         self.layout = KLE2xy(rawdata[1:-1])
         self.eagle_version = eagle_version
+        self._switch_footprint = switch_footprint
+        self.diode_type = diode[diode_type]
+        self.smd_led = False if smd_led.lower() == 'no' else smd_led.lower()
         self.rows = []
         self.max_col = 0
         self.backcolor = None
@@ -279,6 +282,22 @@ class Keyboard(dict):
         """
         return self.schematic_scr, self.board_scr
 
+    def switch_footprint(self, key_width):
+        """Returns the name of the switch footprint for the current key.
+        """
+        if key_width in [2, 2.25, 2.75]:
+            return self._switch_footprint + '-2U'
+        elif key_width in [4]:
+            return self._switch_footprint + '-2U'
+        elif key_width in [6.25]:
+            return self._switch_footprint + '-6.25U'
+        elif key_width in [6.5]:
+            return self._switch_footprint + '-6.5U'
+        elif key_width in [7]:
+            return self._switch_footprint + '-7U'
+        else:
+            return self._switch_footprint + '-1U'
+
     def parse_json(self):
         """Parse the KLE JSON into a data structure we can iterate over.
         """
@@ -291,13 +310,12 @@ class Keyboard(dict):
             self.rows.append([])
             for key in row:
                 key_name = self.translate_label(key['name'])
-                footprint = switches[key['width']] \
-                    if key['width'] in switches else \
-                    switches['DEFAULT']
+                footprint = self.switch_footprint(key['width'])
                 coord = [key['column'], key['row']]
+                coord_mm = [key['x'], key['y']]
                 last_key = self[key_name] = KeyboardKey(key_name, last_key, next_key,
-                                self.eagle_version, footprint=footprint,
-                                diode=diode, coord=coord, offset=(0,0))
+                                self.eagle_version, switch_footprint=footprint,
+                                diode=self.diode_type, coord=coord, coord_mm=coord_mm, offset=(0,0))
                 self.rows[-1].append(key_name)
                 next_key = self.default_next_key.copy()
 

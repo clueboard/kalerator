@@ -24,6 +24,9 @@ def post_index():
 
     eagle_version = request.form.get('eagle_version', config.default_eagle_ver)
     url = urlparse(request.form.get('kle_url'))
+    switch_footprint = request.form.get('switch_footprint', 'KEYSWITCH-PLAIN-ALPSMX')
+    diode_type = request.form.get('diode_type', 'tht')
+    smd_led = request.form.get('smd_led', 'no')
 
     try:
         storage_type, layout_id = url.fragment.split('/')[1:3]
@@ -31,9 +34,7 @@ def post_index():
     except IndexError:
         abort(400)  # They gave us an invalid URL
 
-    return redirect(url_for('view_storage_type_layout_id',
-                    storage_type=storage_type, layout_id=layout_id) +
-                    '?eagle_version=' + eagle_version)
+    return redirect(url_for('view_storage_type_layout_id', storage_type=storage_type, layout_id=layout_id) + '?eagle_version=' + eagle_version + '&switch_footprint=' + switch_footprint + '&diode_type=' + diode_type + '&smd_led=' + smd_led)
 
 
 @app.route('/view/<storage_type>/<layout_id>', methods=['GET'])
@@ -41,11 +42,13 @@ def view_storage_type_layout_id(storage_type, layout_id):
     """View a layout.
     """
     eagle_version = request.args.get('eagle_version', config.default_eagle_ver)
+    switch_footprint = request.args.get('switch_footprint', 'KEYSWITCH-PLAIN-ALPSMX')
+    diode_type = request.args.get('diode_type', 'tht')
+    smd_led = request.args.get('smd_led', 'no')
     kle_json = fetch_kle_json(storage_type, layout_id)
-    k = Keyboard(kle_json, eagle_version)
+    k = Keyboard(kle_json, eagle_version, switch_footprint, diode_type, smd_led)
 
-    return render_page('show_scripts', keyboard=k, storage_type=storage_type,
-                       layout_id=layout_id, eagle_version=eagle_version)
+    return render_page('show_scripts', keyboard=k, storage_type=storage_type, layout_id=layout_id, eagle_version=eagle_version, switch_footprint=switch_footprint, diode_type=diode_type, smd_led=smd_led)
 
 
 @app.route('/download/board/<storage_type>/<kle_id>', methods=['GET'])
@@ -53,8 +56,11 @@ def download_board_kle_id(storage_type, kle_id):
     """Download the board script.
     """
     eagle_version = request.args.get('eagle_version', config.default_eagle_ver)
+    switch_footprint = request.args.get('switch_footprint', 'KEYSWITCH-PLAIN-ALPSMX')
+    diode_type = request.args.get('diode_type', 'tht')
+    smd_led = request.args.get('smd_led', 'no')
     kle_json = fetch_kle_json(storage_type=storage_type, layout_id=kle_id)
-    k = Keyboard(kle_json, eagle_version)
+    k = Keyboard(kle_json, eagle_version, switch_footprint, diode_type, smd_led)
     name = k.name if k.name else kle_id
 
     res = Response(k.board_scr + '\n',
@@ -70,8 +76,11 @@ def download_schematic_kle_id(storage_type, kle_id):
     """Download the schematic script.
     """
     eagle_version = request.args.get('eagle_version', config.default_eagle_ver)
+    switch_footprint = request.args.get('switch_footprint', 'KEYSWITCH-PLAIN-ALPSMX')
+    diode_type = request.args.get('diode_type', 'tht')
+    smd_led = request.args.get('smd_led', 'no')
     kle_json = fetch_kle_json(storage_type=storage_type, layout_id=kle_id)
-    k = Keyboard(kle_json, eagle_version)
+    k = Keyboard(kle_json, eagle_version, switch_footprint, diode_type, smd_led)
     name = k.name if k.name else kle_id
 
     res = Response(k.schematic_scr + '\n',

@@ -1,8 +1,7 @@
 # coding=UTF-8
 from decimal import Decimal
 
-from .config import diode, key_spacing_in, key_spacing_mm, switches, \
-    trace_width
+from .config import key_spacing_in, key_spacing_mm
 from .diode import Diode
 from .functions import float_to_str, translate_board_coords
 
@@ -10,18 +9,16 @@ from .functions import float_to_str, translate_board_coords
 class KeyboardKey(object):
     """Abstraction for keyboard switches.
     """
-    def __init__(self, name, left_key, next_key, eagle_version, coord, offset,
-                 footprint=switches['DEFAULT'], diode=diode):
+    def __init__(self, name, left_key, next_key, eagle_version, coord, coord_mm, offset, switch_footprint, diode):
         self.name = name.replace(' ', '')
         self.left_key = left_key
         self.coord = coord[:]
+        self._coord_mm = coord_mm[:]
         self.eagle_version = eagle_version
-        self.footprint = footprint
+        self.switch_footprint = switch_footprint
         self._board_scr = None
         self._schematic_scr = None
         self.width = next_key['w']
-        self.coord[1] += next_key['y']
-        self.coord[1] *= -1  # Inverted because K-L-E has an upside-down Y axis
         self.diode = Diode(self.name, self.coord_in, self.coord_mm, **diode)
         self.column_pin_scr = (
             self.coord_in[0] - Decimal('0.3'),
@@ -41,7 +38,7 @@ class KeyboardKey(object):
         )
 
         # Figure out where our pins are
-        self.sch_pin = [self.coord_in[0] - Decimal('0.1'), self.coord_in[1] + Decimal('0.6')]
+        self.sch_pin = [self.coord_in[0] - Decimal('0.1'), self.coord_in[1] + Decimal('0.7')]
 
     @property
     def board_scr(self):
@@ -60,15 +57,14 @@ class KeyboardKey(object):
     @property
     def coord_in(self):
         # Kludge: footprint is long
-        return (self.coord[0] * key_spacing_in,
-                (self.coord[1] * key_spacing_in) * 2)
+        return (self._coord_mm[0] * Decimal('0.0393701'),
+                (self._coord_mm[1] * Decimal('0.0393701')) * 2)
 
     @property
     def coord_mm(self):
-        coords = [self.coord[0] * key_spacing_mm,
-                  self.coord[1] * key_spacing_mm]
+        coords = [self._coord_mm[0], self._coord_mm[1]]
 
-        if self.width > 1:
+        if self.width > 1:  # What's this for? I don't remember. :(
             extra_width = (self.width - 1) * key_spacing_mm
             offset_amount = extra_width / 2
             coords[0] += offset_amount
@@ -88,25 +84,6 @@ class KeyboardKey(object):
             self.diode.board_scr
         ]
 
-        if self.left_key:
-            if self.left_key.row_pin[1] == self.row_pin[1]:
-                board_scr.append('ROUTE %s (%s %s) (%s %s);' % (
-                    trace_width,
-                    float_to_str(self.left_key.row_pin[0] + Decimal('0.01')),
-                    float_to_str(self.left_key.row_pin[1]),
-                    float_to_str(self.row_pin[0] - Decimal('0.01')),
-                    float_to_str(self.row_pin[1])
-                ))
-
-        else:
-            board_scr.append(
-                'MOVE PROW%s (%s %s);' % (
-                    self.coord[1] * -1,
-                    self.row_header_pin[0],
-                    self.row_header_pin[1]
-                )
-            )
-
         self._board_scr = '\n'.join(board_scr)
 
         if self.eagle_version == 'free':
@@ -117,7 +94,7 @@ class KeyboardKey(object):
         """
         self._schematic_scr = [
             'ADD %s %s (%s %s);' % (
-                self.footprint,
+                self.switch_footprint,
                 self.name,
                 float_to_str(self.coord_in[0]),
                 float_to_str(self.coord_in[1])
@@ -128,25 +105,9 @@ class KeyboardKey(object):
         if self.left_key:
             if self.left_key.sch_pin[1] == self.sch_pin[1]:
                 self._schematic_scr.append('NET ROW%s (%s %s) (%s %s);' % (
-                    self.coord[1] * -1,
+                    self.coord[1] + 1,
                     float_to_str(self.left_key.sch_pin[0]),
                     float_to_str(self.left_key.sch_pin[1]),
                     float_to_str(self.sch_pin[0]),
                     float_to_str(self.sch_pin[1])
                 ))
-
-        else:
-            self._schematic_scr.append(
-                'ADD HEADER-1P-KEYBOARD@Headers PROW%s R90 (%s %s);\n' % (
-                    self.coord[1] * -1,
-                    self.sch_pin[0],
-                    self.sch_pin[1]
-                ) + 'JUNCTION (%s %s);\n' % (
-                    self.sch_pin[0],
-                    self.sch_pin[1]
-                ) + 'NAME ROW%s (%s %s);\n' % (
-                    self.coord[1] * -1,
-                    self.sch_pin[0],
-                    self.sch_pin[1]
-                )
-            )

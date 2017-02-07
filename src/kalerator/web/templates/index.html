@@ -7,9 +7,31 @@
     <h4>Enter a Keyboard-Layout-Editor URL:</h4>
     <form method="post">
         <p><input name="kle_url" type="url" placeholder="http://www.keyboard-layout-editor.com/#/layouts/..." size="80"> <input type="submit"></p>
-        <p>EAGLE Version:
-            <input type="radio" name="eagle_version" value="paid" checked>Paid
-            <input type="radio" name="eagle_version" value="free">Free
-        </p>
+        <label for="eagle_version">EAGLE Version:</label>
+        <input type="radio" name="eagle_version" value="paid" checked>Paid
+        <input type="radio" name="eagle_version" value="free">Free
+			  <br>
+        <label for="switch_footprint">Switch Footprint</label>
+        <select name="switch_footprint">
+            <option value="KEYSWITCH-PLAIN-ALPS">Alps</option>
+            <option selected value="KEYSWITCH-PLAIN-ALPSMX">Alps+MX</option>
+            <option value="KEYSWITCH-PLAIN-ALPSMX-LED">Alps+MX LED</option>
+            <option value="KEYSWITCH-PLAIN-MX">MX</option>
+            <option value="KEYSWITCH-PLAIN-MX-LED">MX LED</option>
+            <option value="KEYSWITCH-PLAIN-MX-RGBLED">MX RGB LED</option>
+        </select>
+        <br>
+        <label for="diode_type">Diode Type</label>
+        <select name="diode_type">
+            <option selected value="tht">Throughhole</option>
+            <option value="smd">Surface Mount</option>
+				</select>
+        <br>
+        <label for="smd_led">Add SMD LED's?</label>
+        <select name="smd_led">
+            <option selected value="no">No</option>
+            <option value="yes">Single Color</option>
+            <option value="ws2812b">WS2812B</option>
+        </select>
     </form>
 {% endblock %}

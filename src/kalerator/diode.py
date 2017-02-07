@@ -1,5 +1,4 @@
 # coding=UTF-8
-from .config import trace_width
 from .keyboard import float_to_str
 
 
@@ -27,18 +26,11 @@ class Diode(object):
         """Returns the script snippets for moving the diode into place.
         """
         return '\n'.join((
-            'ROTATE R90 D%s;' % self.name,
+            'ROTATE R270 D%s;' % self.name,
             'MOVE D%s (%s %s);' % (
                 self.name,
                 float_to_str(self.coord_mm[0]),
                 float_to_str(self.coord_mm[1])
-            ),
-            'WIRE 16 %s (%s %s) (%s %s);' % (
-                trace_width,
-                self.pin_neg[0],
-                self.pin_pos[1],
-                float_to_str(self.switch_pin[0]),
-                float_to_str(self.switch_pin[1])
             )
         ))
 
