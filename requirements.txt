@@ -1,0 +1,5 @@
+flask
+flask-csrf
+greenlet
+gevent
+requests
