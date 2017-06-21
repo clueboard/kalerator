@@ -14,6 +14,7 @@ RUN git clone https://github.com/skullydazed/kalerator.git
 WORKDIR /kalerator
 RUN pip3 install git+https://github.com/skullydazed/kle2xy.git
 RUN pip3 install -r requirements.txt
+WORKDIR /kalerator/src
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
-CMD gunicorn -w 8 -b 0.0.0.0:5000 --max-requests 1000 --max-requests-jitter 100 -t 60 web:app
+CMD gunicorn -w 8 -b 0.0.0.0:5000 --max-requests 1000 --max-requests-jitter 100 -t 60 kalerator.web.app:app
